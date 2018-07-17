@@ -1,4 +1,5 @@
 import jwt
+import uuid
 import datetime
 import psycopg2
 from api import *
@@ -34,6 +35,10 @@ class Work(object):
 
     def load_identifiers(self):
         self.URI = self.get_identifiers()
+
+    @staticmethod
+    def generate_uuid():
+        return str(uuid.uuid4())
 
     @staticmethod
     def get_from_work_id(work_id):
