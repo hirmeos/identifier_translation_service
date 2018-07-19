@@ -98,8 +98,9 @@ class Translator(object):
           (b) there is no canonical among multiple URIs of the fittest result.
         """
         best = result_to_identifier(results[0])
-        # IterBetter does not support slices - convert results to list
-        for e in list(results)[1:]:
+        # IterBetter does not support slices - so we convert results to list.
+        # Pointer is already be at results[1], ergo the list won't include best
+        for e in list(results):
             candidate  = result_to_identifier(e)
             same_score = candidate.score == best.score
             same_work  = candidate.work == best.work
