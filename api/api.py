@@ -195,6 +195,12 @@ def result_to_work(r):
                 r["titles"] if "titles" in r else [])
     return work
 
+def strtolist(data):
+    if type(data) is str:
+        return [data]
+    elif type(data) is list:
+        return data
+
 import translator
 import worksctrl
 import authctrl
