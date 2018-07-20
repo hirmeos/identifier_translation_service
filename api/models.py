@@ -48,6 +48,7 @@ class Work(object):
         except ValueError:
             return false
 
+    @staticmethod
     def get_from_work_id(work_id):
         params = dict(uuid=work_id)
         clause = "AND work_id = $uuid"
