@@ -10,11 +10,15 @@ from pbkdf2 import crypt
 logger = logging.getLogger(__name__)
 
 class Work(object):
-    def __init__(self, work_id, work_type = None, titles = [], uris = []):
-        self.UUID  = work_id
-        self.type  = work_type if work_type else self.get_type()
-        self.title = titles if titles else [(x["title"]) for x in self.get_titles()]
-        self.URI = uris
+    def __init__(self, work_id, work_type = None, titles = [], \
+                 uris = [], child = [], parent = []):
+        self.UUID   = work_id
+        self.type   = work_type if work_type else self.get_type()
+        self.URI    = uris
+        self.child  = child
+        self.parent = parent
+        self.title  = titles if titles else \
+                      [(x["title"]) for x in self.get_titles()]
 
     def get_type(self):
         options = dict(uuid=self.UUID)
@@ -46,12 +50,21 @@ class Work(object):
                     t.save_if_not_exists()
                     db.insert('work_title', work_id=self.UUID, title=title)
                 for i in self.URI:
-                    uri = i['URI']
+                    uri = i['URI'] or i['uri']
                     is_canonical = i['canonical']
                     scheme, value = Identifier.split_uri(uri)
                     Identifier.insert_if_not_exist(scheme, value)
                     db.insert('work_uri', work_id=self.UUID, uri_scheme=scheme,
                                uri_value=value, canonical=is_canonical)
+                if self.child:
+                    for c in self.child:
+                        db.insert('work_relation', parent_work_id=self.UUID,
+                                  child_work_id=c)
+                if self.parent:
+                    for p in self.parent:
+                        db.insert('work_relation', parent_work_id=p,
+                                  child_work_id=self.UUID)
+
         except (Exception, psycopg2.DatabaseError) as error:
             logging.debug(error)
             raise Error(FATAL)
@@ -64,9 +77,19 @@ class Work(object):
     def is_uuid(input_uuid):
         try:
             uuid.UUID(input_uuid)
-            return true
+            return True
         except ValueError:
-            return false
+            return False
+
+    @staticmethod
+    def uuid_exists(work_id):
+        try:
+            options = dict(work_id=work_id)
+            result = db.select('work', options, what="work_id",
+                               where="work_id = $work_id")
+            return result.first()["work_id"] == work_id
+        except:
+            return False
 
     @staticmethod
     def get_from_work_id(work_id):
@@ -124,7 +147,7 @@ class UriScheme(object):
 
     def exists(self):
         try:
-            options = dict(scheme=self.scheme)
+            options = dict(scheme=self.uri_scheme)
             result = db.select('uri_scheme', options,
                                where="uri_scheme = $scheme")
             return result.first()["uri_scheme"] == self.uri_scheme

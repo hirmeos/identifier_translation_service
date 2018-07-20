@@ -3,7 +3,7 @@ import web
 import urllib
 from api import *
 from errors import *
-from models import Work, WorkType
+from models import Work, WorkType, Identifier, UriScheme
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,9 @@ class WorksController(object):
         data   = json.loads(web.data())
         wtype  = data.get('type')
         title  = data.get('title')
-        uri    = data.get('URI')
+        uri    = data.get('URI') or data.get('uri')
+        parent = data.get('parent')
+        child  = data.get('child')
 
         try:
             titles = strtolist(title)
@@ -77,9 +79,10 @@ class WorksController(object):
         for i in uris:
             # attempt to get scheme from URI
             try:
-                scheme, value = Identifier.split_uri(i)
+                ident = i['URI'] or i['uri']
+                scheme, value = Identifier.split_uri(ident)
             except:
-                raise Error(BADPARAMS, msg="Invalid URI '%s'" % (i))
+                raise Error(BADPARAMS, msg="Invalid URI '%s'" % (ident))
 
             # check whether the URI scheme exists in the database
             try:
@@ -89,6 +92,28 @@ class WorksController(object):
 
         uuid = Work.generate_uuid()
         work = Work(uuid, wtype, titles, uris)
+
+        if parent:
+            parents = strtolist(parent)
+            for p in parents:
+                try:
+                    assert Work.is_uuid(p)
+                    assert Work.uuid_exists(p)
+                except AssertionError as error:
+                    logger.debug(error)
+                    raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
+            work.parent = parents
+
+        if child:
+            children = strtolist(child)
+            for c in children:
+                try:
+                    assert Work.is_uuid(c)
+                    assert Work.uuid_exists(c)
+                except AssertionError as error:
+                    logger.debug(error)
+                    raise Error(BADPARAMS, msg="Invalid child UUID provided.")
+            work.child = children
 
         work.save()
 
