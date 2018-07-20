@@ -10,13 +10,10 @@ from pbkdf2 import crypt
 logger = logging.getLogger(__name__)
 
 class Work(object):
-    def __init__(self, work_id, work_type = None, titles = [], \
-                 uris = [], child = [], parent = []):
+    def __init__(self, work_id, work_type = None, titles = [], uris = []):
         self.UUID   = work_id
         self.type   = work_type if work_type else self.get_type()
         self.URI    = uris
-        self.child  = child
-        self.parent = parent
         self.title  = titles if titles else \
                       [(x["title"]) for x in self.get_titles()]
 
@@ -38,8 +35,35 @@ class Work(object):
                          where="work_id = $uuid")
         return results_to_identifiers(uris)
 
+    def get_children(self):
+        options = dict(uuid=self.UUID)
+        return db.select('work_relation', options, what="child_work_id",
+                         where="parent_work_id=$uuid")
+
+    def get_parents(self):
+        options = dict(uuid=self.UUID)
+        return db.select('work_relation', options, what="parent_work_id",
+                         where="child_work_id=$uuid")
+
     def load_identifiers(self):
         self.URI = self.get_identifiers()
+
+    def set_attribute(self, attribute, value):
+        self.__dict__.update({attribute: value})
+
+    def load_children(self):
+        c = self.get_children()
+        self.set_children([(x["child_work_id"]) for x in c] if c else [])
+
+    def load_parents(self):
+        p = self.get_parents()
+        self.set_parents([(x["parent_work_id"]) for x in p] if p else [])
+
+    def set_children(self, children):
+        self.set_attribute('child', children)
+
+    def set_parents(self, parents):
+        self.set_attribute('parent', parents)
 
     def save(self):
         try:
