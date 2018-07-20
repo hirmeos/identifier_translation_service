@@ -87,6 +87,16 @@ class Identifier(object):
                                      self.URI_parts['value'])
 
     @staticmethod
+    def insert_if_not_exist(uri_scheme, uri_value):
+        try:
+            option = dict(sch=uri_scheme, val=uri_value)
+            q = '''INSERT INTO uri VALUES ($sch, $val) ON CONFLICT DO NOTHING'''
+            return db.query(q, option)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
+
+    @staticmethod
     def split_uri(uri_str):
         """Get the scheme (+namespace if not a URL), and value from URI."""
         uri = URI(uri_str)
