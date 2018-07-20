@@ -39,8 +39,7 @@ PBKDF2_ITERATIONS = int(os.environ['PBKDF2_ITERATIONS'])
 urls = (
     "/translate(/?)", "translator.Translator",
     "/works(/?)", "worksctrl.WorksController",
-    "/auth(/?)", "authctrl.AuthController",
-    "(.*)", "NotFound",
+    "/auth(/?)", "authctrl.AuthController"
 )
 
 try:
@@ -216,4 +215,6 @@ if __name__ == "__main__":
     logger.info("Starting API...")
     app = web.application(urls, globals())
     web.config.debug = debug
+    app.internalerror = internal_error
+    app.notfound = not_found
     app.run()
