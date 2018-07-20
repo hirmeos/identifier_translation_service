@@ -70,6 +70,19 @@ class Work(object):
             logger.error(error)
             raise Error(FATAL)
 
+class Title(object):
+    def __init__(self, title):
+        self.title = title
+
+    def save_if_not_exists(self):
+        try:
+            option = dict(title=self.title)
+            q = '''INSERT INTO title VALUES ($title) ON CONFLICT DO NOTHING'''
+            return db.query(q, option)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
+
 class UriScheme(object):
     def __init__(self, uri_scheme):
         self.uri_scheme = uri_scheme
