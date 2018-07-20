@@ -84,9 +84,6 @@ class Identifier(object):
         return Identifier.rejoin_uri(self.URI_parts['scheme'],
                                      self.URI_parts['value'])
 
-    def load_work(self):
-        self.work = Work(se).__dict__
-
     @staticmethod
     def split_uri(uri_str):
         """Get the scheme (+namespace if not a URL), and value from URI."""
