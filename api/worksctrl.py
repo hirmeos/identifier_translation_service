@@ -3,7 +3,7 @@ import web
 import urllib
 from api import *
 from errors import *
-from models import Work
+from models import Work, WorkType
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,46 @@ class WorksController(object):
     @check_token
     def POST(self, name):
         """Create a work"""
-        raise Error(NOTALLOWED)
+        logger.debug("Data: %s" % (web.data()))
+
+        data   = json.loads(web.data())
+        wtype  = data.get('type')
+        title  = data.get('title')
+        uri    = data.get('URI')
+
+        try:
+            titles = strtolist(title)
+            uris   = strtolist(uri)
+            assert wtype and titles and uris
+        except AssertionError as error:
+            logger.debug(error)
+            raise Error(BADPARAMS, msg="You must provide a (work) type"
+                                        + ", a title, and at least one URI")
+
+        try:
+            assert WorkType(wtype).exists()
+        except:
+            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
+
+        for i in uris:
+            # attempt to get scheme from URI
+            try:
+                scheme, value = Identifier.split_uri(i)
+            except:
+                raise Error(BADPARAMS, msg="Invalid URI '%s'" % (i))
+
+            # check whether the URI scheme exists in the database
+            try:
+                assert UriScheme(scheme).exists()
+            except:
+                raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
+
+        uuid = Work.generate_uuid()
+        work = Work(uuid, wtype, titles, uris)
+
+        work.save()
+
+        return [work.__dict__]
 
     @json_response
     @api_response
