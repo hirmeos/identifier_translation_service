@@ -38,7 +38,9 @@ class WorksController(object):
 
         if not results:
             raise Error(NORESULT)
-        data = results_to_works(results)
+
+        include_relatives = work_id != None
+        data = results_to_works(results, include_relatives)
 
         if sort:
             reverse = order == "desc"
@@ -102,7 +104,9 @@ class WorksController(object):
                 except AssertionError as error:
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
-            work.parent = parents
+            work.set_parents(parents)
+        else:
+            work.set_parents([])
 
         if child:
             children = strtolist(child)
@@ -113,7 +117,9 @@ class WorksController(object):
                 except AssertionError as error:
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid child UUID provided.")
-            work.child = children
+            work.set_children(children)
+        else:
+            work.set_children([])
 
         work.save()
 
