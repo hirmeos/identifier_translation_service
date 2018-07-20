@@ -10,10 +10,11 @@ from pbkdf2 import crypt
 logger = logging.getLogger(__name__)
 
 class Work(object):
-    def __init__(self, work_id, work_type = None, titles = []):
+    def __init__(self, work_id, work_type = None, titles = [], uris = []):
         self.UUID  = work_id
         self.type  = work_type if work_type else self.get_type()
         self.title = titles if titles else [(x["title"]) for x in self.get_titles()]
+        self.URI = uris
 
     def get_type(self):
         options = dict(uuid=self.UUID)
