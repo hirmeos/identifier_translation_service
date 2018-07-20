@@ -41,6 +41,13 @@ class Work(object):
         return str(uuid.uuid4())
 
     @staticmethod
+    def is_uuid(input_uuid):
+        try:
+            uuid.UUID(input_uuid)
+            return true
+        except ValueError:
+            return false
+
     def get_from_work_id(work_id):
         params = dict(uuid=work_id)
         clause = "AND work_id = $uuid"
