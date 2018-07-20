@@ -70,6 +70,23 @@ class Work(object):
             logger.error(error)
             raise Error(FATAL)
 
+class UriScheme(object):
+    def __init__(self, uri_scheme):
+        self.uri_scheme = uri_scheme
+
+    def exists(self):
+        try:
+            options = dict(scheme=self.scheme)
+            result = db.select('uri_scheme', options,
+                               where="uri_scheme = $scheme")
+            return result.first()["uri_scheme"] == self.uri_scheme
+        except:
+            return False
+
+    @staticmethod
+    def get_all():
+        return db.select('uri_scheme')
+
 class Identifier(object):
     def __init__(self, uri_scheme, uri_value, canonical, score, work_id = None, work_type = None):
         self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
