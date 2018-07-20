@@ -83,6 +83,22 @@ class Title(object):
             logger.error(error)
             raise Error(FATAL)
 
+class WorkType(object):
+    def __init__(self, work_type):
+        self.work_type = work_type
+
+    def exists(self):
+        try:
+            options = dict(wtype=self.work_type)
+            result = db.select('work_type', options, where="work_type = $wtype")
+            return result.first()["work_type"] == self.work_type
+        except:
+            return False
+
+    @staticmethod
+    def get_all():
+        return db.select('work_type')
+
 class UriScheme(object):
     def __init__(self, uri_scheme):
         self.uri_scheme = uri_scheme
