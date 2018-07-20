@@ -37,6 +37,25 @@ class Work(object):
     def load_identifiers(self):
         self.URI = self.get_identifiers()
 
+    def save(self):
+        try:
+            with db.transaction():
+                db.insert('work', work_id=self.UUID, work_type=self.type)
+                for title in self.title:
+                    t = Title(title)
+                    t.save_if_not_exists()
+                    db.insert('work_title', work_id=self.UUID, title=title)
+                for i in self.URI:
+                    uri = i['URI']
+                    is_canonical = i['canonical']
+                    scheme, value = Identifier.split_uri(uri)
+                    Identifier.insert_if_not_exist(scheme, value)
+                    db.insert('work_uri', work_id=self.UUID, uri_scheme=scheme,
+                               uri_value=value, canonical=is_canonical)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logging.debug(error)
+            raise Error(FATAL)
+
     @staticmethod
     def generate_uuid():
         return str(uuid.uuid4())
