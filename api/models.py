@@ -1,4 +1,5 @@
 import jwt
+import uuid
 import datetime
 import psycopg2
 from api import *
@@ -9,10 +10,12 @@ from pbkdf2 import crypt
 logger = logging.getLogger(__name__)
 
 class Work(object):
-    def __init__(self, work_id, work_type = None, titles = []):
-        self.UUID  = work_id
-        self.type  = work_type if work_type else self.get_type()
-        self.title = titles if titles else [(x["title"]) for x in self.get_titles()]
+    def __init__(self, work_id, work_type = None, titles = [], uris = []):
+        self.UUID   = work_id
+        self.type   = work_type if work_type else self.get_type()
+        self.URI    = uris
+        self.title  = titles if titles else \
+                      [(x["title"]) for x in self.get_titles()]
 
     def get_type(self):
         options = dict(uuid=self.UUID)
@@ -32,8 +35,85 @@ class Work(object):
                          where="work_id = $uuid")
         return results_to_identifiers(uris)
 
+    def get_children(self):
+        options = dict(uuid=self.UUID)
+        return db.select('work_relation', options, what="child_work_id",
+                         where="parent_work_id=$uuid")
+
+    def get_parents(self):
+        options = dict(uuid=self.UUID)
+        return db.select('work_relation', options, what="parent_work_id",
+                         where="child_work_id=$uuid")
+
     def load_identifiers(self):
         self.URI = self.get_identifiers()
+
+    def set_attribute(self, attribute, value):
+        self.__dict__.update({attribute: value})
+
+    def load_children(self):
+        c = self.get_children()
+        self.set_children([(x["child_work_id"]) for x in c] if c else [])
+
+    def load_parents(self):
+        p = self.get_parents()
+        self.set_parents([(x["parent_work_id"]) for x in p] if p else [])
+
+    def set_children(self, children):
+        self.set_attribute('child', children)
+
+    def set_parents(self, parents):
+        self.set_attribute('parent', parents)
+
+    def save(self):
+        try:
+            with db.transaction():
+                db.insert('work', work_id=self.UUID, work_type=self.type)
+                for title in self.title:
+                    t = Title(title)
+                    t.save_if_not_exists()
+                    db.insert('work_title', work_id=self.UUID, title=title)
+                for i in self.URI:
+                    uri = i['URI'] or i['uri']
+                    is_canonical = i['canonical']
+                    scheme, value = Identifier.split_uri(uri)
+                    Identifier.insert_if_not_exist(scheme, value)
+                    db.insert('work_uri', work_id=self.UUID, uri_scheme=scheme,
+                               uri_value=value, canonical=is_canonical)
+                if self.child:
+                    for c in self.child:
+                        db.insert('work_relation', parent_work_id=self.UUID,
+                                  child_work_id=c)
+                if self.parent:
+                    for p in self.parent:
+                        db.insert('work_relation', parent_work_id=p,
+                                  child_work_id=self.UUID)
+
+        except (Exception, psycopg2.DatabaseError) as error:
+            logging.debug(error)
+            raise Error(FATAL)
+
+    @staticmethod
+    def generate_uuid():
+        return str(uuid.uuid4())
+
+    @staticmethod
+    def is_uuid(input_uuid):
+        try:
+            uuid.UUID(input_uuid)
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def uuid_exists(work_id):
+        try:
+            options = dict(work_id=work_id)
+            result = db.select('work', options, what="work_id",
+                               where="work_id = $work_id")
+            return result.first()["work_id"] == work_id
+        except:
+            return False
 
     @staticmethod
     def get_from_work_id(work_id):
@@ -56,6 +136,52 @@ class Work(object):
             logger.error(error)
             raise Error(FATAL)
 
+class Title(object):
+    def __init__(self, title):
+        self.title = title
+
+    def save_if_not_exists(self):
+        try:
+            option = dict(title=self.title)
+            q = '''INSERT INTO title VALUES ($title) ON CONFLICT DO NOTHING'''
+            return db.query(q, option)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
+
+class WorkType(object):
+    def __init__(self, work_type):
+        self.work_type = work_type
+
+    def exists(self):
+        try:
+            options = dict(wtype=self.work_type)
+            result = db.select('work_type', options, where="work_type = $wtype")
+            return result.first()["work_type"] == self.work_type
+        except:
+            return False
+
+    @staticmethod
+    def get_all():
+        return db.select('work_type')
+
+class UriScheme(object):
+    def __init__(self, uri_scheme):
+        self.uri_scheme = uri_scheme
+
+    def exists(self):
+        try:
+            options = dict(scheme=self.uri_scheme)
+            result = db.select('uri_scheme', options,
+                               where="uri_scheme = $scheme")
+            return result.first()["uri_scheme"] == self.uri_scheme
+        except:
+            return False
+
+    @staticmethod
+    def get_all():
+        return db.select('uri_scheme')
+
 class Identifier(object):
     def __init__(self, uri_scheme, uri_value, canonical, score, work_id = None, work_type = None):
         self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
@@ -72,8 +198,15 @@ class Identifier(object):
         return Identifier.rejoin_uri(self.URI_parts['scheme'],
                                      self.URI_parts['value'])
 
-    def load_work(self):
-        self.work = Work(se).__dict__
+    @staticmethod
+    def insert_if_not_exist(uri_scheme, uri_value):
+        try:
+            option = dict(sch=uri_scheme, val=uri_value)
+            q = '''INSERT INTO uri VALUES ($sch, $val) ON CONFLICT DO NOTHING'''
+            return db.query(q, option)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
 
     @staticmethod
     def split_uri(uri_str):
