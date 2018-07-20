@@ -145,7 +145,7 @@ def result_to_identifier(r):
                       r["work_id"] if "work_id" in r else None,
                       r["work_type"] if "work_type" in r else None)
 
-def results_to_works(results):
+def results_to_works(results, include_relatives = False):
     """Iterate the results to get distinct works with associated identifiers.
 
     Without this method we would need to query the list of work_ids, then
@@ -168,6 +168,9 @@ def results_to_works(results):
             cur["URI"] = uris_fmt
             work = result_to_work(cur)
             work.URI = results_to_identifiers(cur["URI"])
+            if include_relatives:
+                work.load_children()
+                work.load_parents()
             data.append(work.__dict__)
             titles = []
             uris = []
@@ -186,6 +189,9 @@ def results_to_works(results):
             cur["URI"] = uris_fmt
             work = result_to_work(cur)
             work.URI = results_to_identifiers(cur["URI"])
+            if include_relatives:
+                work.load_children()
+                work.load_parents()
             data.append(work.__dict__)
         i+=1
     return data
