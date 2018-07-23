@@ -14,8 +14,7 @@ class Work(object):
         self.UUID   = work_id
         self.type   = work_type if work_type else self.get_type()
         self.URI    = uris
-        self.title  = titles if titles else \
-                      [(x["title"]) for x in self.get_titles()]
+        self.title  = titles if titles else self.get_titles()
 
     def get_type(self):
         options = dict(uuid=self.UUID)
@@ -25,8 +24,9 @@ class Work(object):
 
     def get_titles(self):
         options = dict(uuid=self.UUID)
-        return db.select('work_title', options,
-                         what="title", where="work_id = $uuid")
+        titles = db.select('work_title', options,
+                           what="title", where="work_id = $uuid")
+        return [(x["title"]) for x in titles]
 
     def get_identifiers(self):
         options = dict(uuid=self.UUID)
@@ -48,6 +48,9 @@ class Work(object):
     def load_identifiers(self):
         self.URI = self.get_identifiers()
 
+    def load_titles(self):
+        self.title = self.get_titles()
+
     def set_attribute(self, attribute, value):
         self.__dict__.update({attribute: value})
 
@@ -68,30 +71,53 @@ class Work(object):
     def save(self):
         try:
             with db.transaction():
-                db.insert('work', work_id=self.UUID, work_type=self.type)
+                q = '''INSERT INTO work (work_id, work_type)
+                       VALUES ($work_id, $work_type) ON CONFLICT DO NOTHING'''
+                db.query(q, dict(work_id=self.UUID, work_type=self.type))
+                assert self.exists()
+
                 for title in self.title:
                     t = Title(title)
                     t.save_if_not_exists()
-                    db.insert('work_title', work_id=self.UUID, title=title)
+                    q = '''INSERT INTO work_title (work_id, title)
+                           VALUES ($work_id, $title) ON CONFLICT DO NOTHING'''
+                    db.query(q, dict(work_id=self.UUID, title=title))
+
                 for i in self.URI:
                     uri = i['URI'] or i['uri']
                     is_canonical = i['canonical']
                     scheme, value = Identifier.split_uri(uri)
                     Identifier.insert_if_not_exist(scheme, value)
-                    db.insert('work_uri', work_id=self.UUID, uri_scheme=scheme,
-                               uri_value=value, canonical=is_canonical)
-                if self.child:
+                    q = '''INSERT INTO work_uri (work_id, uri_scheme, uri_value,
+                           canonical)
+                           VALUES (work_id, uri_scheme, uri_value, canonical)'''
+                    db.query(q, dict(work_id=self.UUID, uri_scheme=scheme,
+                                     uri_value=value, canonical=is_canonical))
+
+                try:
                     for c in self.child:
                         db.insert('work_relation', parent_work_id=self.UUID,
                                   child_work_id=c)
-                if self.parent:
+                except AttributeError:
+                    pass
+                try:
                     for p in self.parent:
                         db.insert('work_relation', parent_work_id=p,
                                   child_work_id=self.UUID)
-
+                except AttributeError:
+                    pass
         except (Exception, psycopg2.DatabaseError) as error:
-            logging.debug(error)
+            logger.debug(error)
             raise Error(FATAL)
+
+
+    def exists(self):
+        try:
+            options = dict(uuid=self.UUID)
+            result = db.select('work', options, where="work_id = $uuid")
+            return result.first()["work_id"] == self.UUID
+        except:
+            return False
 
     @staticmethod
     def generate_uuid():
@@ -148,6 +174,10 @@ class Title(object):
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise Error(FATAL)
+
+    @staticmethod
+    def get_all():
+        return db.select('title')
 
 class WorkType(object):
     def __init__(self, work_type):
