@@ -105,8 +105,6 @@ class WorksController(object):
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
             work.set_parents(parents)
-        else:
-            work.set_parents([])
 
         if child:
             children = strtolist(child)
@@ -118,8 +116,6 @@ class WorksController(object):
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid child UUID provided.")
             work.set_children(children)
-        else:
-            work.set_children([])
 
         work.save()
 
