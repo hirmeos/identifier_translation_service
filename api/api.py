@@ -40,7 +40,8 @@ urls = (
     "/translate(/?)", "translator.Translator",
     "/works(/?)", "worksctrl.WorksController",
     "/auth(/?)", "authctrl.AuthController",
-    "/titles(/?)", "titlesctrl.TitlesController"
+    "/titles(/?)", "titlesctrl.TitlesController",
+    "/uris(/?)", "urisctrl.UrisController"
 )
 
 try:
