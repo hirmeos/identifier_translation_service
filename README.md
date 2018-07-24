@@ -19,3 +19,5 @@ All HTTP requests must contain the a valid authentication token within the "Auth
 
 Tokens can be obtained making a POST request to `/auth`, providing "email" and "password" with values equal to those used in account creation.
 
+## Debugging
+You may set env variable `API_DEBUG` to `True` in order to enable debugging
