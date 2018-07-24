@@ -32,8 +32,8 @@ services:
     environment:
       - IDENTIFIERSDB_HOST=identifiertranslatorservice_db
       - AUTHDB_HOST=identifiertranslatorservice_authdb
-      - API_DEBUG=False
     env_file:
+      - api.env
       - db.env
       - authdb.env
     depends_on:
