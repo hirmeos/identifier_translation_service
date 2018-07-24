@@ -83,6 +83,10 @@ class WorksController(object):
             try:
                 ident = i['URI'] or i['uri']
                 scheme, value = Identifier.split_uri(ident)
+                try:
+                    i['canonical'] = i['canonical'] in (True, "true", "True")
+                except:
+                    i['canonical'] = False
             except:
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (ident))
 
@@ -105,8 +109,6 @@ class WorksController(object):
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
             work.set_parents(parents)
-        else:
-            work.set_parents([])
 
         if child:
             children = strtolist(child)
@@ -118,8 +120,6 @@ class WorksController(object):
                     logger.debug(error)
                     raise Error(BADPARAMS, msg="Invalid child UUID provided.")
             work.set_children(children)
-        else:
-            work.set_children([])
 
         work.save()
 
