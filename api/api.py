@@ -25,7 +25,10 @@ import logging
 from errors import *
 
 # Determine logging level
-debug = os.environ['API_DEBUG'] == 'True'
+try:
+    debug = os.environ['API_DEBUG'] in ('True', 'true', True)
+except:
+    debug = False
 level = logging.NOTSET if debug else logging.ERROR
 logging.basicConfig(level=level)
 logger = logging.getLogger(__name__)
