@@ -2,24 +2,22 @@ version: "3.5"
 
 services:
   identifiertranslatorservice_authdb:
-    image: postgres:10
+    image: openbookpublishers/tokens_db
     container_name: "identifiertranslatorservice_authdb"
     restart: unless-stopped
     volumes:
       - authdb:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
-      - ./authdb:/docker-entrypoint-initdb.d
     env_file:
       - authdb.env
 
   identifiertranslatorservice_db:
-    image: postgres:10
+    image: openbookpublishers/identifiers_db
     container_name: "identifiertranslatorservice_db"
     restart: unless-stopped
     volumes:
       - db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
-      - ./db:/docker-entrypoint-initdb.d
     env_file:
       - db.env
 
