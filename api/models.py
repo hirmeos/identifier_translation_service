@@ -89,8 +89,9 @@ class Work(object):
                     scheme, value = Identifier.split_uri(uri)
                     Identifier.insert_if_not_exist(scheme, value)
                     q = '''INSERT INTO work_uri (work_id, uri_scheme, uri_value,
-                           canonical)
-                           VALUES (work_id, uri_scheme, uri_value, canonical)'''
+                           canonical) VALUES
+                           ($work_id, $uri_scheme, $uri_value, $canonical)
+                           ON CONFLICT DO NOTHING'''
                     db.query(q, dict(work_id=self.UUID, uri_scheme=scheme,
                                      uri_value=value, canonical=is_canonical))
 

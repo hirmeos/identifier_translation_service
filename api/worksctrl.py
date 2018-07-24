@@ -83,6 +83,10 @@ class WorksController(object):
             try:
                 ident = i['URI'] or i['uri']
                 scheme, value = Identifier.split_uri(ident)
+                try:
+                    i['canonical'] = i['canonical'] in (True, "true", "True")
+                except:
+                    i['canonical'] = False
             except:
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (ident))
 
