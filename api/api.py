@@ -39,7 +39,9 @@ PBKDF2_ITERATIONS = int(os.environ['PBKDF2_ITERATIONS'])
 urls = (
     "/translate(/?)", "translator.Translator",
     "/works(/?)", "worksctrl.WorksController",
-    "/auth(/?)", "authctrl.AuthController"
+    "/auth(/?)", "authctrl.AuthController",
+    "/titles(/?)", "titlesctrl.TitlesController",
+    "/uris(/?)", "urisctrl.UrisController"
 )
 
 try:
@@ -133,10 +135,7 @@ def build_clause(attribute, values):
     return [clause + ")", params]
 
 def results_to_identifiers(results):
-    data = []
-    for e in results:
-        data.append(result_to_identifier(e).__dict__)
-    return data
+    return [(result_to_identifier(e).__dict__) for e in results]
 
 def result_to_identifier(r):
     return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
@@ -200,8 +199,14 @@ def result_to_work(r):
                 r["titles"] if "titles" in r else [])
     return work
 
+def results_to_titles(results):
+    return [(result_to_title(e).__dict__) for e in results]
+
+def result_to_title(r):
+    return Title(r["title"])
+
 def strtolist(data):
-    if type(data) is str:
+    if isinstance(data, basestring):
         return [data]
     elif type(data) is list:
         return data
@@ -209,7 +214,7 @@ def strtolist(data):
 import translator
 import worksctrl
 import authctrl
-from models import Identifier, Work, Token
+from models import Identifier, Work, Title, Token
 
 if __name__ == "__main__":
     logger.info("Starting API...")
