@@ -9,7 +9,7 @@ services:
       - authdb:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - authdb.env
+      - ./config/authdb.env
 
   identifiertranslatorservice_db:
     image: openbookpublishers/identifiers_db
@@ -19,7 +19,7 @@ services:
       - db:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - db.env
+      - ./config/db.env
 
   identifiertranslatorservice_api:
     build: ./
@@ -31,9 +31,9 @@ services:
       - IDENTIFIERSDB_HOST=identifiertranslatorservice_db
       - AUTHDB_HOST=identifiertranslatorservice_authdb
     env_file:
-      - api.env
-      - db.env
-      - authdb.env
+      - ./config/api.env
+      - ./config/db.env
+      - ./config/authdb.env
     depends_on:
       - identifiertranslatorservice_authdb
       - identifiertranslatorservice_db
