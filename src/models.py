@@ -120,6 +120,21 @@ class Work(object):
         except:
             return False
 
+    def delete_uris(self):
+        for i in self.URI:
+            uri = i['URI'] or i['uri']
+            scheme, value = Identifier.split_uri(uri)
+            q = '''DELETE FROM work_uri WHERE work_id = $work_id
+                    AND uri_scheme = $scheme AND uri_value = $value'''
+            db.query(q, dict(work_id=self.UUID, scheme=scheme, value=value))
+            # now we delete the URI if it's not linked to other work
+            q = '''DELETE FROM uri WHERE
+                    uri_scheme = $scheme AND uri_value = $value'''
+            try:
+                db.query(q, dict(scheme=scheme, value=value))
+            except:
+                pass
+
     @staticmethod
     def generate_uuid():
         return str(uuid.uuid4())
