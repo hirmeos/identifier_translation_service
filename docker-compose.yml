@@ -22,7 +22,7 @@ services:
       - db.env
 
   identifiertranslatorservice_api:
-    build: ./api
+    build: ./
     container_name: "identifiertranslatorservice_api"
     restart: unless-stopped
     ports:
