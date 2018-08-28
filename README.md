@@ -11,7 +11,7 @@ docker exec -it identifiertranslatorservice_api python
 Then call the `create_account()` method in `AuthController()`:
 ```
 from api import *
-authctrl.AuthController.create_account("email@obp.com", "secure_password")
+authctrl.AuthController.create_account("email@obp.com", "secure_password", "Name", "Surname", "user")
 ```
 
 ## Auth tokens
