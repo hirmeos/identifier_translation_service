@@ -135,6 +135,17 @@ class Work(object):
             except:
                 pass
 
+    def delete_titles(self):
+        for title in self.title:
+            q = '''DELETE FROM work_title WHERE work_id = $work_id
+                    AND title = $title'''
+            db.query(q, dict(work_id=self.UUID, title=title))
+            # now we delete the title if it's not linked to other work
+            try:
+                db.delete('title', dict(title=title), where="title=$title")
+            except:
+                pass
+
     @staticmethod
     def generate_uuid():
         return str(uuid.uuid4())
@@ -347,10 +358,13 @@ class Identifier(object):
 
 class Account(object):
     """API authentication accounts"""
-    def __init__(self, email, password):
-        self.email = email
-        self.id    = "acct:"+email
-        self.password = password
+    def __init__(self, email, password, name = '', surname ='', auth = 'user'):
+        self.email     = email
+        self.id        = "acct:"+email
+        self.password  = password
+        self.name      = name
+        self.surname   = surname
+        self.authority = auth
 
     def save(self):
         try:
@@ -360,7 +374,8 @@ class Account(object):
 
         try:
             authdb.insert('account', account_id=self.id, email=self.email,
-                          password=self.hash)
+                          password=self.hash, authority=self.authority,
+                          name=self.name, surname=self.surname)
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise Error(FATAL)
@@ -381,12 +396,15 @@ class Account(object):
             raise Error(FATAL)
 
     def is_valid(self):
-        options = dict(email=email)
+        options = dict(email=self.email)
         result = authdb.select('account', options, where="email = $email")
         if not result:
             return False
         res = result.first()
         self.hash = res["password"]
+        self.authority = res["authority"]
+        self.name = res["name"]
+        self.surname = res["surname"]
         return self.is_password_correct()
 
     def is_password_correct(self):
