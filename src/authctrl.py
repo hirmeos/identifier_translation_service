@@ -14,6 +14,7 @@ class AuthController(object):
     @api_response
     def POST(self, name):
         """Login - obtain a token"""
+        logger.debug(web.input())
         email  = web.input().get('email')
         passwd = web.input().get('password')
 
@@ -27,13 +28,17 @@ class AuthController(object):
 
         try:
             account = Account(email, passwd)
-            if not account.is_valid:
+            if not account.is_valid():
                 raise Error(BADAUTH)
-        except Exception:
+        except Exception as e:
+            logger.debug(e)
             raise Error(BADAUTH)
 
-        token = account.renew_token()
-        return [token]
+        result = account.__dict__
+        result['token'] = account.renew_token()
+        del result['password']
+        del result['hash']
+        return [result]
 
     @staticmethod
     def validate_email(email):
@@ -46,11 +51,11 @@ class AuthController(object):
         return check_email.match(email) is not None
 
     @staticmethod
-    def create_account(email, password):
+    def create_account(email, password, name, surname, authority = 'user'):
         """No API endpoint calls this method - it's meant to be used via CLI"""
         AuthController.validate_email(email)
         try:
-            account = Account(email, password)
+            account = Account(email, password, name, surname, authority)
             account.save()
         except Exception as e:
             logger.error(e)
@@ -65,3 +70,6 @@ class AuthController(object):
     def DELETE(self, name):
         raise Error(NOTALLOWED)
 
+    @json_response
+    def OPTIONS(self, name):
+        return
