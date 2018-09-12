@@ -28,7 +28,7 @@ class TypesController(object):
         results = WorkType.get_all()
 
         try:
-            assert results:
+            assert results
         except:
             raise Error(NORESULT)
 
