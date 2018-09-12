@@ -14,9 +14,11 @@ class AuthController(object):
     @api_response
     def POST(self, name):
         """Login - obtain a token"""
-        logger.debug(web.input())
-        email  = web.input().get('email')
-        passwd = web.input().get('password')
+        logger.debug(web.data())
+
+        data   = json.loads(web.data())
+        email  = data.get('email')
+        passwd = data.get('password')
 
         try:
             assert email
