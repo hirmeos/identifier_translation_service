@@ -21,7 +21,8 @@ class AuthController(object):
         token.validate()
 
         try:
-          user = Account.get_from_token(token.token)
+          user = Account.get_from_token(token.token).first()
+          logger.debug(user)
           account = Account(user['email'], user['password'], user['name'],
                             user['surname'], user['authority'])
         except Exception as e:
@@ -85,9 +86,6 @@ class AuthController(object):
         except Exception as e:
             logger.error(e)
             raise Error(FATAL)
-
-    def GET(self, name):
-        raise Error(NOTALLOWED)
 
     def PUT(self, name):
         raise Error(NOTALLOWED)

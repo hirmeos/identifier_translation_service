@@ -412,7 +412,7 @@ class Account(object):
 
     @staticmethod
     def get_from_token(token):
-        params = {token: token}
+        params = {'token': token}
         q = '''SELECT * FROM account WHERE account_id =
                  (SELECT account_id FROM account_token WHERE token = $token);'''
         try:
