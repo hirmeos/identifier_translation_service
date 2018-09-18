@@ -3,12 +3,35 @@ import web
 import urllib
 from api import *
 from errors import *
-from models import Account
+from models import Account, Token
 
 logger = logging.getLogger(__name__)
 
 class AuthController(object):
     """Handles authentication tokens"""
+
+    @json_response
+    @api_response
+    def GET(self, name):
+        """Check a token"""
+        logger.debug("Query: %s" % (web.input()))
+
+        intoken = web.input().get('token')
+        token = Token(intoken)
+        token.validate()
+
+        try:
+          user = Account.get_from_token(token.token)
+          account = Account(user['email'], user['password'], user['name'],
+                            user['surname'], user['authority'])
+        except Exception as e:
+            logger.debug(e)
+            raise Error(BADAUTH)
+
+        result = account.__dict__
+        result['token'] = token.token
+        del result['password']
+        return [result]
 
     @json_response
     @api_response

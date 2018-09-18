@@ -410,6 +410,17 @@ class Account(object):
     def is_password_correct(self):
         return self.hash == crypt(self.password, self.hash)
 
+    @staticmethod
+    def get_from_token(token):
+        params = {token: token}
+        q = '''SELECT * FROM account WHERE account_id =
+                 (SELECT account_id FROM account_token WHERE token = $token);'''
+        try:
+            return authdb.query(q, params)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
+
 class Token(object):
     """API tokens"""
     def __init__(self, token=None, sub=None, exp=None, iat=None):
