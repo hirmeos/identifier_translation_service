@@ -69,5 +69,31 @@ class UrisController(object):
     @check_token
     def DELETE(self, name):
         """Delete an identifier"""
-        raise Error(NOTALLOWED)
+        logger.debug("Data: %s" % (web.input()))
 
+        work_id = web.input().get('UUID') or web.input().get('uuid')
+        uri     = web.input().get('URI') or web.input().get('uri')
+
+        try:
+            assert uri and work_id
+        except AssertionError as error:
+            logger.debug(error)
+            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
+                                        + " and a URI")
+
+        try:
+            scheme, value = Identifier.split_uri(uri)
+            uris = [{'URI': uri}]
+        except:
+            raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
+
+        try:
+            work = Work(work_id, uris=uris)
+            assert work.exists()
+        except:
+            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+
+        work.delete_uris()
+        work.load_identifiers()
+
+        return [work.__dict__]

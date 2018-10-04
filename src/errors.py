@@ -42,33 +42,49 @@ _level_statuses = {
     BADAUTH:      '401 Unauthorized'
 }
 
+_level_codes = {
+    NOTFOUND:     404,
+    NOTALLOWED:   405,
+    BADPARAMS:    400,
+    BADFILTERS:   400,
+    NORESULT:     404,
+    NONCANONICAL: 404,
+    AMBIGUOUS:    404,
+    FATAL:        500,
+    UNAUTHORIZED: 401,
+    FORBIDDEN:    403,
+    BADAUTH:      401
+}
+
 class Error(web.HTTPError):
     """Exception handler in the form of http errors"""
 
     def __init__(self, level=DEFAULT, msg = '', data = []):
         httpstatus = self.get_status(level)
+        httpcode   = self.get_code(level)
         headers    = {'Content-Type': 'application/json'}
-        message    = self.make_message(level, msg)
+        message    = self.get_message(level)
+        params     = web.input() if web.input() else web.data()
         output     = json.dumps(
-                        self.make_output(message, web.input(), data))
+                        self.make_output(httpcode, message, msg, params, data))
 
         web.HTTPError.__init__(self, httpstatus, headers, output)
 
     def get_status(self, level):
         return _level_statuses.get(level)
 
+    def get_code(self, level):
+        return _level_codes.get(level)
+
     def get_message(self, level):
         return _level_messages.get(level)
 
-    def make_message(self, level, msg):
-        if msg:
-            return " ".join([_level_messages.get(level), msg])
-        return _level_messages.get(level)
-
-    def make_output(self, status_msg, parameters, data):
+    def make_output(self, httpcode, status_msg, description, parameters, data):
         return {
             'status': 'error',
-            'status-msg': status_msg,
+            'code': httpcode,
+            'message': status_msg,
+            'description': description,
             'parameters': parameters,
             'count': len(data),
             'data': data
