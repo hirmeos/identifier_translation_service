@@ -46,7 +46,7 @@ class WorksController(object):
             reverse = order == "desc"
             # we sort by each work's (first) title, ignoring special chars
             return sorted(data,
-                  key=lambda x: re.sub('[^A-Za-z0-9]+', '', x[sort][0]),
+                  key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
                   reverse=reverse)
         return data
 
@@ -139,3 +139,6 @@ class WorksController(object):
         """Delete a work"""
         raise Error(NOTALLOWED)
 
+    @json_response
+    def OPTIONS(self, name):
+        return

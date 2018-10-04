@@ -53,13 +53,34 @@ class TitlesController(object):
     @api_response
     @check_token
     def PUT(self, name):
-        """Update a work"""
+        """Update a title"""
         raise Error(NOTALLOWED)
 
     @json_response
     @api_response
     @check_token
     def DELETE(self, name):
-        """Delete a work"""
-        raise Error(NOTALLOWED)
+        """Delete a title"""
+        logger.debug("Data: %s" % (web.input()))
 
+        work_id = web.input().get('UUID') or web.input().get('uuid')
+        title   = web.input().get('title')
+
+        try:
+            assert title and work_id
+        except AssertionError as error:
+            logger.debug(error)
+            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
+                                        + " and a title")
+
+        try:
+            work = Work(work_id, title=[title])
+            assert work.exists()
+        except:
+            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+
+        work.delete_titles()
+        work.load_titles()
+        work.load_identifiers()
+
+        return [work.__dict__]

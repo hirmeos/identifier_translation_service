@@ -44,7 +44,8 @@ urls = (
     "/works(/?)", "worksctrl.WorksController",
     "/auth(/?)", "authctrl.AuthController",
     "/titles(/?)", "titlesctrl.TitlesController",
-    "/uris(/?)", "urisctrl.UrisController"
+    "/uris(/?)", "urisctrl.UrisController",
+    "/work_types(/?)", "typesctrl.TypesController"
 )
 
 try:
@@ -68,7 +69,7 @@ def api_response(fn):
         data  = fn(self, *args, **kw)
         count = len(data)
         if count > 0:
-            return {'status': 'ok', 'count': count, 'data': data}
+            return {'status': 'ok', 'code': 200, 'count': count, 'data': data}
         else:
             raise Error(NORESULT)
     return response
@@ -77,6 +78,9 @@ def json_response(fn):
     """JSON decorator"""
     def response(self, *args, **kw):
         web.header('Content-Type', 'application/json;charset=UTF-8')
+        web.header('Access-Control-Allow-Origin', '"'.join([os.environ['ALLOW_ORIGIN']]))
+        web.header('Access-Control-Allow-Credentials', 'true')
+        web.header('Access-Control-Allow-Headers', 'Authorization, x-test-header, Origin, X-Requested-With, Content-Type, Accept')
         return json.dumps(fn(self, *args, **kw), ensure_ascii=False)
     return response
 
@@ -208,6 +212,12 @@ def results_to_titles(results):
 def result_to_title(r):
     return Title(r["title"])
 
+def results_to_work_types(results):
+    return [(result_to_work_type(e).__dict__) for e in results]
+
+def result_to_work_type(r):
+    return WorkType(r["work_type"])
+
 def strtolist(data):
     if isinstance(data, basestring):
         return [data]
@@ -217,7 +227,7 @@ def strtolist(data):
 import translator
 import worksctrl
 import authctrl
-from models import Identifier, Work, Title, Token
+from models import Identifier, Work, Title, WorkType, Token
 
 if __name__ == "__main__":
     logger.info("Starting API...")
