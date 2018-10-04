@@ -120,6 +120,32 @@ class Work(object):
         except:
             return False
 
+    def delete_uris(self):
+        for i in self.URI:
+            uri = i['URI'] or i['uri']
+            scheme, value = Identifier.split_uri(uri)
+            q = '''DELETE FROM work_uri WHERE work_id = $work_id
+                    AND uri_scheme = $scheme AND uri_value = $value'''
+            db.query(q, dict(work_id=self.UUID, scheme=scheme, value=value))
+            # now we delete the URI if it's not linked to other work
+            q = '''DELETE FROM uri WHERE
+                    uri_scheme = $scheme AND uri_value = $value'''
+            try:
+                db.query(q, dict(scheme=scheme, value=value))
+            except:
+                pass
+
+    def delete_titles(self):
+        for title in self.title:
+            q = '''DELETE FROM work_title WHERE work_id = $work_id
+                    AND title = $title'''
+            db.query(q, dict(work_id=self.UUID, title=title))
+            # now we delete the title if it's not linked to other work
+            try:
+                db.delete('title', dict(title=title), where="title=$title")
+            except:
+                pass
+
     @staticmethod
     def generate_uuid():
         return str(uuid.uuid4())
@@ -332,10 +358,13 @@ class Identifier(object):
 
 class Account(object):
     """API authentication accounts"""
-    def __init__(self, email, password):
-        self.email = email
-        self.id    = "acct:"+email
-        self.password = password
+    def __init__(self, email, password, name = '', surname ='', auth = 'user'):
+        self.email     = email
+        self.id        = "acct:"+email
+        self.password  = password
+        self.name      = name
+        self.surname   = surname
+        self.authority = auth
 
     def save(self):
         try:
@@ -345,7 +374,8 @@ class Account(object):
 
         try:
             authdb.insert('account', account_id=self.id, email=self.email,
-                          password=self.hash)
+                          password=self.hash, authority=self.authority,
+                          name=self.name, surname=self.surname)
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise Error(FATAL)
@@ -366,16 +396,30 @@ class Account(object):
             raise Error(FATAL)
 
     def is_valid(self):
-        options = dict(email=email)
+        options = dict(email=self.email)
         result = authdb.select('account', options, where="email = $email")
         if not result:
             return False
         res = result.first()
         self.hash = res["password"]
+        self.authority = res["authority"]
+        self.name = res["name"]
+        self.surname = res["surname"]
         return self.is_password_correct()
 
     def is_password_correct(self):
         return self.hash == crypt(self.password, self.hash)
+
+    @staticmethod
+    def get_from_token(token):
+        params = {'token': token}
+        q = '''SELECT * FROM account WHERE account_id =
+                 (SELECT account_id FROM account_token WHERE token = $token);'''
+        try:
+            return authdb.query(q, params)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
 
 class Token(object):
     """API tokens"""
