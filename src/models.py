@@ -271,11 +271,11 @@ class Identifier(object):
         uri = URI(uri_str)
         if uri.scheme.name in ['http','https']:
             scheme = uri.scheme.name
-            value  = uri.heirarchical
+            value  = uri.hierarchical
         else:
-            # e.g. uri.heirarchical = 'doi:10.11647/obp.0130';
+            # e.g. uri.hierarchical = 'doi:10.11647/obp.0130';
             # we are asumming the path only contains one colon
-            namespace, value = uri.heirarchical.split(':', 1)
+            namespace, value = uri.hierarchical.split(':', 1)
             scheme = ''.join([uri.scheme.name,':', namespace])
             if namespace is "isbn":
                 # we store hyphenless isbn numbers - remove hyphens from input
