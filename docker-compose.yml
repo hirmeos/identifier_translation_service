@@ -22,7 +22,7 @@ services:
       - ./config/db.env
 
   identifiertranslatorservice_api:
-    build: ./
+    image: openbookpublishers/identifier_translation_service
     container_name: "identifiertranslatorservice_api"
     restart: unless-stopped
     ports:
