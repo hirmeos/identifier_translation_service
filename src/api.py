@@ -45,7 +45,8 @@ urls = (
     "/auth(/?)", "authctrl.AuthController",
     "/titles(/?)", "titlesctrl.TitlesController",
     "/uris(/?)", "urisctrl.UrisController",
-    "/work_types(/?)", "typesctrl.TypesController"
+    "/work_types(/?)", "typesctrl.TypesController",
+    "/work_relations(/?)", "relationsctrl.RelationsController"
 )
 
 try:
