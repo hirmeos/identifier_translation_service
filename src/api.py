@@ -104,6 +104,7 @@ def build_parms(filters):
     options = {}
     types   = []
     schemes = []
+    canoncl = []
     clause  = ""
     for p in params:
         try:
@@ -112,12 +113,14 @@ def build_parms(filters):
                 types.append(val)
             elif field == "uri_scheme":
                 schemes.append(val)
+            elif field == "canonical":
+                canoncl.append(val in (True, "true", "True"))
             else:
                 raise Error(BADFILTERS)
         except:
             raise Error(BADFILTERS, msg = "Unknown filter '%s'" % (p))
 
-    process = {"work_type": types, "uri_scheme": schemes}
+    process = {"work_type": types, "uri_scheme": schemes, "canonical": canoncl}
     for key, values in process.items():
         if len(values) > 0:
             try:
