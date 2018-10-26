@@ -1,9 +1,10 @@
 import web
-from api import *
-from errors import *
+from api import json, logging, json_response, api_response, check_token
+from errors import Error, BADPARAMS, NOTALLOWED
 from models import Work
 
 logger = logging.getLogger(__name__)
+
 
 class RelationsController(object):
     """Handles work_relation related actions"""
@@ -30,7 +31,7 @@ class RelationsController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a parent and a child"
-                                        + "UUID")
+                        "UUID")
 
         try:
             parent = Work(parent_uuid)
