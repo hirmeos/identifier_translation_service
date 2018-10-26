@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Identifier Translator JSON API prototype. Simple web.py based API to a PostgreSQL database that runs on port 8080.
+Identifier Translator JSON API. Simple web.py based API to a
+PostgreSQL database that runs on port 8080.
 
 usage: python api.py
 
@@ -19,15 +20,15 @@ Dependencies:
 
 import os
 import web
-import sys
 import json
 import logging
-from errors import *
+from errors import Error, internal_error, not_found, \
+    FATAL, NORESULT, BADFILTERS
 
 # Determine logging level
 try:
     debug = os.environ['API_DEBUG'] in ('True', 'true', True)
-except:
+except BaseException:
     debug = False
 level = logging.NOTSET if debug else logging.ERROR
 logging.basicConfig(level=level)
@@ -64,6 +65,7 @@ except Exception as error:
     logger.error(error)
     raise Error(FATAL)
 
+
 def api_response(fn):
     """Decorator to provided consistency in all responses"""
     def response(self, *args, **kw):
@@ -75,15 +77,20 @@ def api_response(fn):
             raise Error(NORESULT)
     return response
 
+
 def json_response(fn):
     """JSON decorator"""
     def response(self, *args, **kw):
         web.header('Content-Type', 'application/json;charset=UTF-8')
-        web.header('Access-Control-Allow-Origin', '"'.join([os.environ['ALLOW_ORIGIN']]))
+        web.header('Access-Control-Allow-Origin',
+                   '"'.join([os.environ['ALLOW_ORIGIN']]))
         web.header('Access-Control-Allow-Credentials', 'true')
-        web.header('Access-Control-Allow-Headers', 'Authorization, x-test-header, Origin, X-Requested-With, Content-Type, Accept')
+        web.header('Access-Control-Allow-Headers',
+                   'Authorization, x-test-header, Origin, '
+                   'X-Requested-With, Content-Type, Accept')
         return json.dumps(fn(self, *args, **kw), ensure_ascii=False)
     return response
+
 
 def check_token(fn):
     """Decorator to act as middleware, checking authentication token"""
@@ -94,9 +101,11 @@ def check_token(fn):
         return fn(self, *args, **kw)
     return response
 
+
 def get_token_from_header():
     bearer = web.ctx.env.get('HTTP_AUTHORIZATION')
     return bearer.replace("Bearer ", "") if bearer else ""
+
 
 def build_parms(filters):
     if not filters:
@@ -118,8 +127,8 @@ def build_parms(filters):
                 canoncl.append(val in (True, "true", "True"))
             else:
                 raise Error(BADFILTERS)
-        except:
-            raise Error(BADFILTERS, msg = "Unknown filter '%s'" % (p))
+        except BaseException:
+            raise Error(BADFILTERS, msg="Unknown filter '%s'" % (p))
 
     process = {"work_type": types, "uri_scheme": schemes, "canonical": canoncl}
     for key, values in process.items():
@@ -128,25 +137,28 @@ def build_parms(filters):
                 andclause, ops = build_clause(key, values)
                 options.update(ops)
                 clause = clause + andclause
-            except:
+            except BaseException:
                 raise Error(BADFILTERS)
 
     return clause, options
+
 
 def build_clause(attribute, values):
     params = {}
     clause = " AND " + attribute + " IN ("
     no = 1
     for v in values:
-        params[attribute+str(no)] = v
+        params[attribute + str(no)] = v
         if no > 1:
             clause += ","
-        clause += "$"+attribute+str(no)
+        clause += "$" + attribute + str(no)
         no += 1
     return [clause + ")", params]
 
+
 def results_to_identifiers(results):
     return [(result_to_identifier(e).__dict__) for e in results]
+
 
 def result_to_identifier(r):
     return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
@@ -154,18 +166,19 @@ def result_to_identifier(r):
                       r["work_id"] if "work_id" in r else None,
                       r["work_type"] if "work_type" in r else None)
 
-def results_to_works(results, include_relatives = False):
+
+def results_to_works(results, include_relatives=False):
     """Iterate the results to get distinct works with associated identifiers.
 
     Without this method we would need to query the list of work_ids, then
     their titles and uris - iterating the full data set, filtering as needed,
     is a lot faster.
     """
-    data     = [] # output
-    titles   = [] # temporary array of work titles
-    uris     = [] # temporary array of work URIs (strings, used for comparison)
-    uris_fmt = [] # temporary array of work URIs (Identifier objects)
-    last     = len(results)-1
+    data     = []  # output
+    titles   = []  # temporary array of work titles
+    uris     = []  # temp array of work URIs (strings, used for comparison)
+    uris_fmt = []  # temporary array of work URIs (Identifier objects)
+    last     = len(results) - 1
 
     i = 0
     for e in results:
@@ -202,25 +215,31 @@ def results_to_works(results, include_relatives = False):
                 work.load_children()
                 work.load_parents()
             data.append(work.__dict__)
-        i+=1
+        i += 1
     return data
+
 
 def result_to_work(r):
     work = Work(r["work_id"], r["work_type"] if "work_type" in r else None,
                 r["titles"] if "titles" in r else [])
     return work
 
+
 def results_to_titles(results):
     return [(result_to_title(e).__dict__) for e in results]
+
 
 def result_to_title(r):
     return Title(r["title"])
 
+
 def results_to_work_types(results):
     return [(result_to_work_type(e).__dict__) for e in results]
 
+
 def result_to_work_type(r):
     return WorkType(r["work_type"])
+
 
 def strtolist(data):
     if isinstance(data, basestring):
@@ -228,10 +247,11 @@ def strtolist(data):
     elif type(data) is list:
         return data
 
-import translator
-import worksctrl
-import authctrl
-from models import Identifier, Work, Title, WorkType, Token
+
+import translator  # noqa: F401
+import worksctrl  # noqa: F401
+import authctrl  # noqa: F401
+from models import Identifier, Work, Title, WorkType, Token  # noqa: F402
 
 if __name__ == "__main__":
     logger.info("Starting API...")
