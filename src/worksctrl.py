@@ -1,11 +1,12 @@
 import re
 import web
-import urllib
-from api import *
-from errors import *
+from api import json, logging, json_response, api_response, check_token, \
+    results_to_works, strtolist, build_parms
+from errors import Error, NOTALLOWED, BADPARAMS, BADFILTERS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme
 
 logger = logging.getLogger(__name__)
+
 
 class WorksController(object):
     """Handles work related actions"""
@@ -31,23 +32,23 @@ class WorksController(object):
                 if sort:
                     assert sort in ["title"]
                     assert order in ["asc", "desc"]
-            except:
+            except AssertionError:
                 raise Error(BADFILTERS,
-                            msg = "Unknown sort '%s' '%s'" % (sort, order))
+                            msg="Unknown sort '%s' '%s'" % (sort, order))
             results = Work.get_all(clause, params)
 
         if not results:
             raise Error(NORESULT)
 
-        include_relatives = work_id != None
+        include_relatives = work_id is not None
         data = results_to_works(results, include_relatives)
 
         if sort:
             reverse = order == "desc"
             # we sort by each work's (first) title, ignoring special chars
             return sorted(data,
-                  key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
-                  reverse=reverse)
+                          key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
+                          reverse=reverse)
         return data
 
     @json_response
@@ -71,11 +72,11 @@ class WorksController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a (work) type"
-                                        + ", a title, and at least one URI")
+                        ", a title, and at least one URI")
 
         try:
             assert WorkType(wtype).exists()
-        except:
+        except AssertionError:
             raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
 
         for i in uris:
@@ -85,16 +86,17 @@ class WorksController(object):
                 scheme, value = Identifier.split_uri(ident)
                 try:
                     i['canonical'] = i['canonical'] in (True, "true", "True")
-                except:
+                except Exception:
                     i['canonical'] = False
-            except:
+            except Exception:
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (ident))
 
             # check whether the URI scheme exists in the database
             try:
                 assert UriScheme(scheme).exists()
-            except:
-                raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
+            except AssertionError:
+                raise Error(BADPARAMS,
+                            msg="Unknown URI scheme '%s'" % (scheme))
 
         uuid = Work.generate_uuid()
         work = Work(uuid, wtype, titles, uris)
