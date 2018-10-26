@@ -56,17 +56,18 @@ _level_codes = {
     BADAUTH:      401
 }
 
+
 class Error(web.HTTPError):
     """Exception handler in the form of http errors"""
 
-    def __init__(self, level=DEFAULT, msg = '', data = []):
+    def __init__(self, level=DEFAULT, msg='', data=[]):
         httpstatus = self.get_status(level)
         httpcode   = self.get_code(level)
         headers    = {'Content-Type': 'application/json'}
         message    = self.get_message(level)
         params     = web.input() if web.input() else web.data()
         output     = json.dumps(
-                        self.make_output(httpcode, message, msg, params, data))
+            self.make_output(httpcode, message, msg, params, data))
 
         web.HTTPError.__init__(self, httpstatus, headers, output)
 
@@ -90,9 +91,10 @@ class Error(web.HTTPError):
             'data': data
         }
 
+
 def not_found():
     raise Error(NOTFOUND)
 
+
 def internal_error():
     raise Error(FATAL)
-
