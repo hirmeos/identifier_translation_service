@@ -1,11 +1,12 @@
 import re
 import web
-import urllib
-from api import *
-from errors import *
+from api import json, logging, json_response, api_response
+from errors import Error, BADPARAMS, NOTALLOWED, \
+    BADAUTH, FATAL
 from models import Account, Token
 
 logger = logging.getLogger(__name__)
+
 
 class AuthController(object):
     """Handles authentication tokens"""
@@ -21,10 +22,10 @@ class AuthController(object):
         token.validate()
 
         try:
-          user = Account.get_from_token(token.token).first()
-          logger.debug(user)
-          account = Account(user['email'], user['password'], user['name'],
-                            user['surname'], user['authority'])
+            user = Account.get_from_token(token.token).first()
+            logger.debug(user)
+            account = Account(user['email'], user['password'], user['name'],
+                              user['surname'], user['authority'])
         except Exception as e:
             logger.debug(e)
             raise Error(BADAUTH)
@@ -77,7 +78,7 @@ class AuthController(object):
         return check_email.match(email) is not None
 
     @staticmethod
-    def create_account(email, password, name, surname, authority = 'user'):
+    def create_account(email, password, name, surname, authority='user'):
         """No API endpoint calls this method - it's meant to be used via CLI"""
         AuthController.validate_email(email)
         try:
