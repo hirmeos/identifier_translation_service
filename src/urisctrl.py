@@ -1,11 +1,10 @@
-import re
 import web
-import urllib
-from api import *
-from errors import *
-from models import Work, WorkType, Identifier, UriScheme
+from api import json, logging, json_response, api_response, check_token
+from errors import Error, NOTALLOWED, BADPARAMS
+from models import Work, Identifier, UriScheme
 
 logger = logging.getLogger(__name__)
+
 
 class UrisController(object):
     """Handles URI related actions"""
@@ -33,23 +32,23 @@ class UrisController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                                        + " and a URI")
+                        " and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)
             uris = [{'URI': uri, 'canonical': canonical}]
-        except:
+        except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
         try:
             assert UriScheme(scheme).exists()
-        except:
+        except AssertionError:
             raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
 
         try:
             work = Work(work_id, uris=uris)
             assert work.exists()
-        except:
+        except AssertionError:
             raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
 
         work.save()
@@ -79,18 +78,18 @@ class UrisController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                                        + " and a URI")
+                        " and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)
             uris = [{'URI': uri}]
-        except:
+        except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
         try:
             work = Work(work_id, uris=uris)
             assert work.exists()
-        except:
+        except AssertionError:
             raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
 
         work.delete_uris()

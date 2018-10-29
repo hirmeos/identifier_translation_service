@@ -1,11 +1,11 @@
-import re
 import web
-import urllib
-from api import *
-from errors import *
-from models import Work, WorkType, Identifier, UriScheme
+from api import json, logging, json_response, api_response, check_token, \
+    results_to_titles, strtolist
+from errors import Error, BADPARAMS, NOTALLOWED
+from models import Work, Title
 
 logger = logging.getLogger(__name__)
+
 
 class TitlesController(object):
     """Handles title related actions"""
@@ -35,12 +35,12 @@ class TitlesController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                                        + " and at least a title")
+                        " and at least a title")
 
         try:
             work = Work(work_id, titles=titles)
             assert work.exists()
-        except:
+        except Exception:
             raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
 
         work.save()
@@ -71,12 +71,12 @@ class TitlesController(object):
         except AssertionError as error:
             logger.debug(error)
             raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                                        + " and a title")
+                        " and a title")
 
         try:
             work = Work(work_id, title=[title])
             assert work.exists()
-        except:
+        except Exception:
             raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
 
         work.delete_titles()

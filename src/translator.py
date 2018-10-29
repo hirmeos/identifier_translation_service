@@ -1,10 +1,13 @@
 import web
 import urllib
-from api import *
-from errors import *
+from api import build_parms, result_to_identifier, results_to_identifiers, \
+    logging, json_response, api_response, check_token
+from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
+    AMBIGUOUS, NONCANONICAL
 from models import Identifier
 
 logger = logging.getLogger(__name__)
+
 
 class Translator(object):
     """Handles translation queries"""
@@ -43,7 +46,7 @@ class Translator(object):
                 assert title
             else:
                 raise Exception
-        except:
+        except BaseException:
             raise Error(BADPARAMS, msg="Invalid URI or title provided")
 
         clause, params = build_parms(filters)
@@ -85,7 +88,7 @@ class Translator(object):
         elif multiple and strict:
             # process multiple results in strict mode
             logger.debug("Warning: multiple results in strict mode. "
-                          + "Choosing best candidate...")
+                         "Choosing best candidate...")
             return [self.choose_best_candidate(results).__dict__]
 
     def choose_best_candidate(self, results):
@@ -116,4 +119,3 @@ class Translator(object):
                 # different work with the same score
                 continue
         return best
-

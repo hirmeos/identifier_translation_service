@@ -2,15 +2,17 @@ import jwt
 import uuid
 import datetime
 import psycopg2
-from api import *
-from uri import *
-from errors import *
+from api import db, authdb, logging, TOKEN_LIFETIME, SECRET_KEY, \
+    PBKDF2_ITERATIONS, results_to_identifiers
+from uri import URI
+from errors import Error, FATAL, FORBIDDEN, UNAUTHORIZED
 from pbkdf2 import crypt
 
 logger = logging.getLogger(__name__)
 
+
 class Work(object):
-    def __init__(self, work_id, work_type = None, titles = [], uris = []):
+    def __init__(self, work_id, work_type=None, titles=[], uris=[]):
         self.UUID   = work_id
         self.type   = work_type if work_type else self.get_type()
         self.URI    = uris
@@ -111,13 +113,12 @@ class Work(object):
             logger.debug(error)
             raise Error(FATAL)
 
-
     def exists(self):
         try:
             options = dict(uuid=self.UUID)
             result = db.select('work', options, where="work_id = $uuid")
             return result.first()["work_id"] == self.UUID
-        except:
+        except BaseException:
             return False
 
     def delete_uris(self):
@@ -132,7 +133,7 @@ class Work(object):
                     uri_scheme = $scheme AND uri_value = $value'''
             try:
                 db.query(q, dict(scheme=scheme, value=value))
-            except:
+            except BaseException:
                 pass
 
     def delete_titles(self):
@@ -143,7 +144,7 @@ class Work(object):
             # now we delete the title if it's not linked to other work
             try:
                 db.delete('title', dict(title=title), where="title=$title")
-            except:
+            except BaseException:
                 pass
 
     @staticmethod
@@ -165,7 +166,7 @@ class Work(object):
             result = db.select('work', options, what="work_id",
                                where="work_id = $work_id")
             return result.first()["work_id"] == work_id
-        except:
+        except BaseException:
             return False
 
     @staticmethod
@@ -189,6 +190,7 @@ class Work(object):
             logger.error(error)
             raise Error(FATAL)
 
+
 class Title(object):
     def __init__(self, title):
         self.title = title
@@ -206,6 +208,7 @@ class Title(object):
     def get_all():
         return db.select('title')
 
+
 class WorkType(object):
     def __init__(self, work_type):
         self.work_type = work_type
@@ -213,14 +216,16 @@ class WorkType(object):
     def exists(self):
         try:
             options = dict(wtype=self.work_type)
-            result = db.select('work_type', options, where="work_type = $wtype")
+            result = db.select('work_type', options,
+                               where="work_type = $wtype")
             return result.first()["work_type"] == self.work_type
-        except:
+        except BaseException:
             return False
 
     @staticmethod
     def get_all():
         return db.select('work_type')
+
 
 class UriScheme(object):
     def __init__(self, uri_scheme):
@@ -232,15 +237,17 @@ class UriScheme(object):
             result = db.select('uri_scheme', options,
                                where="uri_scheme = $scheme")
             return result.first()["uri_scheme"] == self.uri_scheme
-        except:
+        except BaseException:
             return False
 
     @staticmethod
     def get_all():
         return db.select('uri_scheme')
 
+
 class Identifier(object):
-    def __init__(self, uri_scheme, uri_value, canonical, score, work_id = None, work_type = None):
+    def __init__(self, uri_scheme, uri_value, canonical, score,
+                 work_id=None, work_type=None):
         self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
         self.canonical = canonical
         self.score     = score
@@ -259,7 +266,7 @@ class Identifier(object):
     def insert_if_not_exist(uri_scheme, uri_value):
         try:
             option = dict(sch=uri_scheme, val=uri_value)
-            q = '''INSERT INTO uri VALUES ($sch, $val) ON CONFLICT DO NOTHING'''
+            q = '''INSERT INTO uri VALUES($sch, $val) ON CONFLICT DO NOTHING'''
             return db.query(q, option)
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
@@ -269,14 +276,14 @@ class Identifier(object):
     def split_uri(uri_str):
         """Get the scheme (+namespace if not a URL), and value from URI."""
         uri = URI(uri_str)
-        if uri.scheme.name in ['http','https']:
+        if uri.scheme.name in ['http', 'https']:
             scheme = uri.scheme.name
             value  = uri.heirarchical
         else:
             # e.g. uri.heirarchical = 'doi:10.11647/obp.0130';
             # we are asumming the path only contains one colon
             namespace, value = uri.heirarchical.split(':', 1)
-            scheme = ''.join([uri.scheme.name,':', namespace])
+            scheme = ''.join([uri.scheme.name, ':', namespace])
             if namespace is "isbn":
                 # we store hyphenless isbn numbers - remove hyphens from input
                 value = value.replace("-", "")
@@ -319,10 +326,11 @@ class Identifier(object):
                 SELECT DISTINCT ON (work_id, uri_scheme, uri_value) work_id,
                        work_type, uri_scheme, uri_value, canonical, score
                 FROM (
-                    SELECT work_title.work_id, work_type,uri_scheme, uri_value,                            canonical, 0 AS score
+                    SELECT work_title.work_id, work_type,uri_scheme, uri_value,
+                           canonical, 0 AS score
                     FROM work_title INNER JOIN work USING(work_id)
                     INNER JOIN work_uri USING(work_id)
-                    WHERE lower(work_title.title)  = $title '''+ clause +'''
+                    WHERE lower(work_title.title)  = $title ''' + clause + '''
                     UNION
                     SELECT work_title.work_id, work_type,uri_scheme, uri_value,
                             canonical, 1 AS score
@@ -356,11 +364,12 @@ class Identifier(object):
             logger.error(error)
             raise Error(FATAL)
 
+
 class Account(object):
     """API authentication accounts"""
-    def __init__(self, email, password, name = '', surname ='', auth = 'user'):
+    def __init__(self, email, password, name='', surname='', auth='user'):
         self.email     = email
-        self.id        = "acct:"+email
+        self.id        = "acct:" + email
         self.password  = password
         self.name      = name
         self.surname   = surname
@@ -390,7 +399,7 @@ class Account(object):
             if self.token:
                 token.clear_previous()
                 token.save()
-            return self.token;
+            return self.token
         except Exception as e:
             logger.error(e)
             raise Error(FATAL)
@@ -414,12 +423,13 @@ class Account(object):
     def get_from_token(token):
         params = {'token': token}
         q = '''SELECT * FROM account WHERE account_id =
-                 (SELECT account_id FROM account_token WHERE token = $token);'''
+                (SELECT account_id FROM account_token WHERE token = $token);'''
         try:
             return authdb.query(q, params)
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise Error(FATAL)
+
 
 class Token(object):
     """API tokens"""
@@ -428,7 +438,7 @@ class Token(object):
         self.sub = sub
         self.iat = iat if exp else datetime.datetime.utcnow()
         self.exp = exp if exp else self.iat + datetime.timedelta(
-                      seconds=TOKEN_LIFETIME)
+            seconds=TOKEN_LIFETIME)
         self.load_payload()
 
     def load_payload(self):
@@ -442,7 +452,8 @@ class Token(object):
 
     def encoded(self):
         if not self.token:
-            self.token = jwt.encode(self.payload, SECRET_KEY, algorithm='HS256')
+            self.token = jwt.encode(self.payload, SECRET_KEY,
+                                    algorithm='HS256')
         return self.token
 
     def validate(self):
@@ -460,8 +471,8 @@ class Token(object):
             raise Error(UNAUTHORIZED, msg="Invalid token.")
 
     def is_valid(self):
-        result = authdb.select('account_token',
-            where={'token': self.token, 'account_id': self.sub})
+        where_clause = {'token': self.token, 'account_id': self.sub}
+        result = authdb.select('account_token', where=where_clause)
         return result and "token" in result.first()
 
     def clear_previous(self):
@@ -484,4 +495,3 @@ class Token(object):
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise Error(FATAL)
-
