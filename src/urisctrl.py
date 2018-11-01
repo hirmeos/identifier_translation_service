@@ -1,9 +1,11 @@
 import web
-from api import json, logging, json_response, api_response, check_token
+from aux import logger_instance, debug_mode
+from api import json, json_response, api_response, check_token
 from errors import Error, NOTALLOWED, BADPARAMS
 from models import Work, Identifier, UriScheme
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class UrisController(object):

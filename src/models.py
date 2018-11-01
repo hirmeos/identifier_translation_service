@@ -2,13 +2,14 @@ import jwt
 import uuid
 import datetime
 import psycopg2
-from api import db, authdb, logging, TOKEN_LIFETIME, SECRET_KEY, \
+from aux import logger_instance
+from api import db, authdb, TOKEN_LIFETIME, SECRET_KEY, \
     PBKDF2_ITERATIONS, results_to_identifiers
 from uri import URI
 from errors import Error, FATAL, FORBIDDEN, UNAUTHORIZED
 from pbkdf2 import crypt
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
 
 
 class Work(object):

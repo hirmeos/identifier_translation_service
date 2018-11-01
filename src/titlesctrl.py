@@ -1,10 +1,12 @@
 import web
-from api import json, logging, json_response, api_response, check_token, \
+from aux import logger_instance, debug_mode
+from api import json, json_response, api_response, check_token, \
     results_to_titles, strtolist
 from errors import Error, BADPARAMS, NOTALLOWED
 from models import Work, Title
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class TitlesController(object):

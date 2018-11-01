@@ -21,19 +21,13 @@ Dependencies:
 import os
 import web
 import json
-import logging
+from aux import logger_instance, debug_mode
 from errors import Error, internal_error, not_found, \
     FATAL, NORESULT, BADFILTERS
 
-# Determine logging level
-try:
-    debug = os.environ['API_DEBUG'] in ('True', 'true', True)
-except BaseException:
-    debug = False
-level = logging.NOTSET if debug else logging.ERROR
-logging.basicConfig(level=level)
-logger = logging.getLogger(__name__)
-
+# get logging interface
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 # Get authentication configuration
 SECRET_KEY = os.environ['SECRET_KEY']
 TOKEN_LIFETIME = int(os.environ['TOKEN_LIFETIME'])
@@ -256,7 +250,6 @@ from models import Identifier, Work, Title, WorkType, Token  # noqa: F402
 if __name__ == "__main__":
     logger.info("Starting API...")
     app = web.application(urls, globals())
-    web.config.debug = debug
     app.internalerror = internal_error
     app.notfound = not_found
     app.run()

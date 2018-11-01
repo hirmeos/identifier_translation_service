@@ -1,12 +1,14 @@
 import web
 import urllib
+from aux import logger_instance, debug_mode
 from api import build_parms, result_to_identifier, results_to_identifiers, \
-    logging, json_response, api_response, check_token
+    json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
     AMBIGUOUS, NONCANONICAL
 from models import Identifier
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class Translator(object):
