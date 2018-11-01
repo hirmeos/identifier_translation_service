@@ -1,11 +1,13 @@
 import re
 import web
-from api import logging, json_response, api_response, check_token, \
+from aux import logger_instance, debug_mode
+from api import json_response, api_response, check_token, \
     results_to_work_types
 from errors import Error, NOTALLOWED, NORESULT, BADFILTERS
 from models import WorkType
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class TypesController(object):

@@ -1,11 +1,13 @@
 import re
 import web
-from api import json, logging, json_response, api_response
+from aux import logger_instance, debug_mode
+from api import json, json_response, api_response
 from errors import Error, BADPARAMS, NOTALLOWED, \
     BADAUTH, FATAL
 from models import Account, Token
 
-logger = logging.getLogger(__name__)
+logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class AuthController(object):
