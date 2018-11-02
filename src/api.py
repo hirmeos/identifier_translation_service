@@ -240,9 +240,6 @@ def strtolist(data):
     elif type(data) is list:
         return data
 
-
-import translator  # noqa: F401
-import worksctrl  # noqa: F401
 from models import Identifier, Work, Title, WorkType  # noqa: F402
 
 if __name__ == "__main__":
