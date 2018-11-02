@@ -20,24 +20,22 @@ Dependencies:
 
 import os
 import web
+import jwt
 import json
 from aux import logger_instance, debug_mode
 from errors import Error, internal_error, not_found, \
-    FATAL, NORESULT, BADFILTERS
+    FATAL, NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
-# Get authentication configuration
+# Get secret key to check jwt against
 SECRET_KEY = os.environ['SECRET_KEY']
-TOKEN_LIFETIME = int(os.environ['TOKEN_LIFETIME'])
-PBKDF2_ITERATIONS = int(os.environ['PBKDF2_ITERATIONS'])
 
 # Define routes
 urls = (
     "/translate(/?)", "translator.Translator",
     "/works(/?)", "worksctrl.WorksController",
-    "/auth(/?)", "authctrl.AuthController",
     "/titles(/?)", "titlesctrl.TitlesController",
     "/uris(/?)", "urisctrl.UrisController",
     "/work_types(/?)", "typesctrl.TypesController",
@@ -50,11 +48,6 @@ try:
                       user=os.environ['IDENTIFIERSDB_USER'],
                       pw=os.environ['IDENTIFIERSDB_PASS'],
                       db=os.environ['IDENTIFIERSDB_DB'])
-    authdb = web.database(dbn='postgres',
-                          host=os.environ['AUTHDB_HOST'],
-                          user=os.environ['AUTHDB_USER'],
-                          pw=os.environ['AUTHDB_PASS'],
-                          db=os.environ['AUTHDB_DB'])
 except Exception as error:
     logger.error(error)
     raise Error(FATAL)
@@ -90,8 +83,14 @@ def check_token(fn):
     """Decorator to act as middleware, checking authentication token"""
     def response(self, *args, **kw):
         intoken = get_token_from_header()
-        token = Token(intoken)
-        token.validate()
+        try:
+            jwt.decode(intoken, SECRET_KEY)
+        except jwt.exceptions.DecodeError:
+            raise Error(FORBIDDEN)
+        except jwt.ExpiredSignatureError:
+            raise Error(UNAUTHORIZED, msg="Signature expired.")
+        except jwt.InvalidTokenError:
+            raise Error(UNAUTHORIZED, msg="Invalid token.")
         return fn(self, *args, **kw)
     return response
 
@@ -244,8 +243,7 @@ def strtolist(data):
 
 import translator  # noqa: F401
 import worksctrl  # noqa: F401
-import authctrl  # noqa: F401
-from models import Identifier, Work, Title, WorkType, Token  # noqa: F402
+from models import Identifier, Work, Title, WorkType  # noqa: F402
 
 if __name__ == "__main__":
     logger.info("Starting API...")
