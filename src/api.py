@@ -12,10 +12,10 @@ Use of this software is governed by the terms of the MIT license
 Dependencies:
   pbkdf2==1.3
   PyJWT==1.6.1
-  psycopg2==2.6.1
+  psycopg2-binary==2.7.5
   uri==2.0.0
   urllib3==1.20
-  web.py==0.38
+  web.py==0.39
 """
 
 import os
