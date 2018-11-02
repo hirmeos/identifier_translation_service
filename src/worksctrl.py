@@ -1,10 +1,9 @@
 import re
 import web
-from aux import logger_instance, debug_mode
-from api import json, json_response, api_response, check_token, \
-    results_to_works, strtolist, build_parms
+from aux import logger_instance, debug_mode, strtolist
+from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, NOTALLOWED, BADPARAMS, BADFILTERS, NORESULT
-from models import Work, WorkType, Identifier, UriScheme
+from models import Work, WorkType, Identifier, UriScheme, results_to_works
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()

@@ -12,32 +12,30 @@ Use of this software is governed by the terms of the MIT license
 Dependencies:
   pbkdf2==1.3
   PyJWT==1.6.1
-  psycopg2==2.6.1
+  psycopg2-binary==2.7.5
   uri==2.0.0
   urllib3==1.20
-  web.py==0.38
+  web.py==0.39
 """
 
 import os
 import web
+import jwt
 import json
 from aux import logger_instance, debug_mode
 from errors import Error, internal_error, not_found, \
-    FATAL, NORESULT, BADFILTERS
+    FATAL, NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
-# Get authentication configuration
+# Get secret key to check jwt against
 SECRET_KEY = os.environ['SECRET_KEY']
-TOKEN_LIFETIME = int(os.environ['TOKEN_LIFETIME'])
-PBKDF2_ITERATIONS = int(os.environ['PBKDF2_ITERATIONS'])
 
 # Define routes
 urls = (
     "/translate(/?)", "translator.Translator",
     "/works(/?)", "worksctrl.WorksController",
-    "/auth(/?)", "authctrl.AuthController",
     "/titles(/?)", "titlesctrl.TitlesController",
     "/uris(/?)", "urisctrl.UrisController",
     "/work_types(/?)", "typesctrl.TypesController",
@@ -50,11 +48,6 @@ try:
                       user=os.environ['IDENTIFIERSDB_USER'],
                       pw=os.environ['IDENTIFIERSDB_PASS'],
                       db=os.environ['IDENTIFIERSDB_DB'])
-    authdb = web.database(dbn='postgres',
-                          host=os.environ['AUTHDB_HOST'],
-                          user=os.environ['AUTHDB_USER'],
-                          pw=os.environ['AUTHDB_PASS'],
-                          db=os.environ['AUTHDB_DB'])
 except Exception as error:
     logger.error(error)
     raise Error(FATAL)
@@ -90,8 +83,14 @@ def check_token(fn):
     """Decorator to act as middleware, checking authentication token"""
     def response(self, *args, **kw):
         intoken = get_token_from_header()
-        token = Token(intoken)
-        token.validate()
+        try:
+            jwt.decode(intoken, SECRET_KEY)
+        except jwt.exceptions.DecodeError:
+            raise Error(FORBIDDEN)
+        except jwt.ExpiredSignatureError:
+            raise Error(UNAUTHORIZED, msg="Signature expired.")
+        except jwt.InvalidTokenError:
+            raise Error(UNAUTHORIZED, msg="Invalid token.")
         return fn(self, *args, **kw)
     return response
 
@@ -149,103 +148,6 @@ def build_clause(attribute, values):
         no += 1
     return [clause + ")", params]
 
-
-def results_to_identifiers(results):
-    return [(result_to_identifier(e).__dict__) for e in results]
-
-
-def result_to_identifier(r):
-    return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
-                      r["score"] if "score" in r else 0,
-                      r["work_id"] if "work_id" in r else None,
-                      r["work_type"] if "work_type" in r else None)
-
-
-def results_to_works(results, include_relatives=False):
-    """Iterate the results to get distinct works with associated identifiers.
-
-    Without this method we would need to query the list of work_ids, then
-    their titles and uris - iterating the full data set, filtering as needed,
-    is a lot faster.
-    """
-    data     = []  # output
-    titles   = []  # temporary array of work titles
-    uris     = []  # temp array of work URIs (strings, used for comparison)
-    uris_fmt = []  # temporary array of work URIs (Identifier objects)
-    last     = len(results) - 1
-
-    i = 0
-    for e in results:
-        if i == 0:
-            # we can't do cur=results[0] outsise--it moves IterBetter's pointer
-            cur = e
-        if e["work_id"] != cur["work_id"]:
-            cur["titles"] = titles
-            cur["URI"] = uris_fmt
-            work = result_to_work(cur)
-            work.URI = results_to_identifiers(cur["URI"])
-            if include_relatives:
-                work.load_children()
-                work.load_parents()
-            data.append(work.__dict__)
-            titles = []
-            uris = []
-            uris_fmt = []
-            cur = e
-
-        if e["title"] not in titles:
-            titles.append(e["title"])
-        if [e["uri_scheme"], e["uri_value"], e["canonical"]] not in uris:
-            uris.append([e["uri_scheme"], e["uri_value"], e["canonical"]])
-            uris_fmt.append({"uri_scheme": e["uri_scheme"],
-                             "uri_value": e["uri_value"],
-                             "canonical": e["canonical"]})
-        if i == last:
-            cur["titles"] = titles
-            cur["URI"] = uris_fmt
-            work = result_to_work(cur)
-            work.URI = results_to_identifiers(cur["URI"])
-            if include_relatives:
-                work.load_children()
-                work.load_parents()
-            data.append(work.__dict__)
-        i += 1
-    return data
-
-
-def result_to_work(r):
-    work = Work(r["work_id"], r["work_type"] if "work_type" in r else None,
-                r["titles"] if "titles" in r else [])
-    return work
-
-
-def results_to_titles(results):
-    return [(result_to_title(e).__dict__) for e in results]
-
-
-def result_to_title(r):
-    return Title(r["title"])
-
-
-def results_to_work_types(results):
-    return [(result_to_work_type(e).__dict__) for e in results]
-
-
-def result_to_work_type(r):
-    return WorkType(r["work_type"])
-
-
-def strtolist(data):
-    if isinstance(data, basestring):
-        return [data]
-    elif type(data) is list:
-        return data
-
-
-import translator  # noqa: F401
-import worksctrl  # noqa: F401
-import authctrl  # noqa: F401
-from models import Identifier, Work, Title, WorkType, Token  # noqa: F402
 
 if __name__ == "__main__":
     logger.info("Starting API...")
