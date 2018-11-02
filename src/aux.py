@@ -14,3 +14,10 @@ def logger_instance(name):
     level = logging.NOTSET if debug_mode() else logging.ERROR
     logging.basicConfig(level=level)
     return logging.getLogger(name)
+
+
+def strtolist(data):
+    if isinstance(data, basestring):
+        return [data]
+    elif type(data) is list:
+        return data

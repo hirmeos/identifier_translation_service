@@ -1,11 +1,10 @@
 import web
 import urllib
 from aux import logger_instance, debug_mode
-from api import build_parms, result_to_identifier, results_to_identifiers, \
-    json_response, api_response, check_token
+from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
     AMBIGUOUS, NONCANONICAL
-from models import Identifier
+from models import Identifier, results_to_identifiers, result_to_identifier
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
