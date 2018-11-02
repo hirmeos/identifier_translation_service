@@ -1,4 +1,5 @@
 # Identifier Translator Service
+[![Build Status](https://travis-ci.org/hirmeos/identifier_translation_service.svg?branch=master)](https://travis-ci.org/hirmeos/identifier_translation_service)
 
 ## Create user account
 Account registration is not allowed via HTTP, it must be done directly via CLI.
