@@ -350,7 +350,7 @@ class Identifier(object):
                                 as score
                         FROM work_title INNER JOIN work USING(work_id)
                         INNER JOIN work_uri USING(work_id)
-                        WHERE 1 = 1 ''' + clause + ''') q
+                        WHERE pg_column_size(title) < 255 ''' + clause + ''') q
                     WHERE score <= ((length($title)/3)+1)
                 ) query
                 ORDER BY work_id,uri_scheme, uri_value, score, canonical
