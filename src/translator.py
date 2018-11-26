@@ -43,7 +43,7 @@ class Translator(object):
                 assert scheme, value
             elif title:
                 assert not uri
-                title = urllib.unquote(title)
+                title = urllib.unquote(title.strip())
                 assert title
             else:
                 raise Exception
