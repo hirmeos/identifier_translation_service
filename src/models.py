@@ -315,8 +315,14 @@ class Identifier(object):
             raise Error(FATAL)
 
     @staticmethod
-    def get_from_title(title, clause, params):
-        options = {"title": title.lower()}
+    def get_from_title(title, clause, params, scheme='', value=''):
+        if scheme and value:
+            uri_clause = ''' AND work_title.work_id IN
+                              (SELECT work_id FROM work_uri WHERE
+                               uri_scheme = $scheme AND uri_value = $value)'''
+        else:
+            uri_clause = ''
+        options = {"title": title.lower(), "scheme": scheme, "value": value}
         options.update(params)
         try:
             q = '''SELECT * FROM (
@@ -328,13 +334,14 @@ class Identifier(object):
                     FROM work_title INNER JOIN work USING(work_id)
                     INNER JOIN work_uri USING(work_id)
                     WHERE lower(work_title.title)  = $title ''' + clause + '''
+                          ''' + uri_clause + '''
                     UNION
                     SELECT work_title.work_id, work_type,uri_scheme, uri_value,
                             canonical, 1 AS score
                     FROM work_title INNER JOIN work USING(work_id)
                     INNER JOIN work_uri USING(work_id)
                     WHERE substr(lower(work_title.title), 1, length($title))
-                          = $title ''' + clause + '''
+                          = $title ''' + clause + uri_clause + '''
                     UNION
                     SELECT work_title.work_id, work_type,uri_scheme, uri_value,
                            canonical, 1 AS score
@@ -342,6 +349,7 @@ class Identifier(object):
                     INNER JOIN work_uri USING(work_id)
                     WHERE substr($title, 1, length(work_title.title))
                           = lower(work_title.title) ''' + clause + '''
+                          ''' + uri_clause + '''
                     UNION
                     SELECT * FROM (
                         SELECT work_title.work_id, work_type, uri_scheme,
@@ -350,7 +358,8 @@ class Identifier(object):
                                 as score
                         FROM work_title INNER JOIN work USING(work_id)
                         INNER JOIN work_uri USING(work_id)
-                        WHERE pg_column_size(title) < 255 ''' + clause + ''') q
+                        WHERE pg_column_size(title) < 255 ''' + clause + '''
+                              ''' + uri_clause + ''') q
                     WHERE score <= ((length($title)/3)+1)
                 ) query
                 ORDER BY work_id,uri_scheme, uri_value, score, canonical

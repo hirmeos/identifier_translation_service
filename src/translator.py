@@ -23,7 +23,7 @@ class Translator(object):
             - if uri: get scheme and path lowecased
                 - if isbn: remove hyphens
          2. get parameters from filters
-         3. query by URI or title
+         3. query by URI or title or both
          4. iterate through results and check them
            - if single: output
            - if multiple && strict: attempt to choose fittest result
@@ -38,24 +38,24 @@ class Translator(object):
 
         try:
             if uri:
-                assert not title
                 scheme, value = Identifier.split_uri(uri)
-                assert scheme, value
-            elif title:
-                assert not uri
+                assert scheme and value
+            if title:
                 title = urllib.unquote(title.strip())
                 assert title
-            else:
-                raise Exception
+            assert uri or title
         except BaseException:
             raise Error(BADPARAMS, msg="Invalid URI or title provided")
 
         clause, params = build_parms(filters)
 
-        if uri:
+        if uri and not title:
             results = Identifier.get_from_uri(scheme, value, clause, params)
-        elif title:
+        elif title and not uri:
             results = Identifier.get_from_title(title, clause, params)
+        else:
+            results = Identifier.get_from_title(title, clause, params,
+                                                scheme, value)
 
         if not results:
             raise Error(NORESULT)
