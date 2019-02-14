@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Identifier Translator JSON API. Simple web.py based API to a
@@ -10,12 +10,10 @@ usage: python api.py
 Use of this software is governed by the terms of the MIT license
 
 Dependencies:
-  pbkdf2==1.3
-  PyJWT==1.6.1
+  PyJWT==1.7.1
   psycopg2-binary==2.7.5
   uri==2.0.0
-  urllib3==1.20
-  web.py==0.39
+  web.py==0.40-dev1
 """
 
 import os
@@ -136,7 +134,7 @@ def build_parms(filters):
             raise Error(BADFILTERS, msg="Unknown filter '%s'" % (p))
 
     process = {"work_type": types, "uri_scheme": schemes, "canonical": canoncl}
-    for key, values in process.items():
+    for key, values in list(process.items()):
         if len(values) > 0:
             try:
                 andclause, ops = build_clause(key, values)

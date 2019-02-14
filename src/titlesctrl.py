@@ -26,7 +26,7 @@ class TitlesController(object):
         """Add titles to an existing work"""
         logger.debug("Data: %s" % (web.data()))
 
-        data    = json.loads(web.data())
+        data    = json.loads(web.data().decode('utf-8'))
         title   = data.get('title')
         work_id = data.get('UUID') or data.get('uuid')
 

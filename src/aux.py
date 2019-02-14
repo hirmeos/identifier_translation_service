@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -17,7 +17,7 @@ def logger_instance(name):
 
 
 def strtolist(data):
-    if isinstance(data, basestring):
+    if isinstance(data, str):
         return [data]
-    elif type(data) is list:
+    elif isinstance(data, list):
         return data
