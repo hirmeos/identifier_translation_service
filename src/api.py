@@ -24,13 +24,24 @@ import jwt
 import json
 from aux import logger_instance, debug_mode
 from errors import Error, internal_error, not_found, \
-    FATAL, NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
+    NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
-# Get secret key to check jwt against
-SECRET_KEY = os.environ['SECRET_KEY']
+# You may disable JWT auth. when implementing the API in a local network
+JWT_DISABLED = False
+# Get secret key to check JWT
+SECRET_KEY = ""
+try:
+    if 'JWT_DISABLED' in os.environ:
+        JWT_DISABLED = os.environ['JWT_DISABLED'] in ('true', 'True')
+    if 'SECRET_KEY' in os.environ:
+        SECRET_KEY = os.environ['SECRET_KEY']
+    assert JWT_DISABLED or SECRET_KEY
+except AssertionError as error:
+    logger.error(error)
+    raise
 
 # Define routes
 urls = (
@@ -50,7 +61,7 @@ try:
                       db=os.environ['IDENTIFIERSDB_DB'])
 except Exception as error:
     logger.error(error)
-    raise Error(FATAL)
+    raise
 
 
 def api_response(fn):
@@ -82,15 +93,16 @@ def json_response(fn):
 def check_token(fn):
     """Decorator to act as middleware, checking authentication token"""
     def response(self, *args, **kw):
-        intoken = get_token_from_header()
-        try:
-            jwt.decode(intoken, SECRET_KEY)
-        except jwt.exceptions.DecodeError:
-            raise Error(FORBIDDEN)
-        except jwt.ExpiredSignatureError:
-            raise Error(UNAUTHORIZED, msg="Signature expired.")
-        except jwt.InvalidTokenError:
-            raise Error(UNAUTHORIZED, msg="Invalid token.")
+        if not JWT_DISABLED:
+            intoken = get_token_from_header()
+            try:
+                jwt.decode(intoken, SECRET_KEY)
+            except jwt.exceptions.DecodeError:
+                raise Error(FORBIDDEN)
+            except jwt.ExpiredSignatureError:
+                raise Error(UNAUTHORIZED, msg="Signature expired.")
+            except jwt.InvalidTokenError:
+                raise Error(UNAUTHORIZED, msg="Invalid token.")
         return fn(self, *args, **kw)
     return response
 
