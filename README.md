@@ -1,5 +1,5 @@
 # Identifier Translator Service
-[![Build Status](https://travis-ci.org/hirmeos/identifier_translation_service.svg?branch=master)](https://travis-ci.org/hirmeos/identifier_translation_service)
+[![Build Status](https://travis-ci.org/hirmeos/identifier_translation_service.svg?branch=master)](https://travis-ci.org/hirmeos/identifier_translation_service) ![Release](https://img.shields.io/github/release/hirmeos/identifier_translation_service.svg?colorB=58839b)](https://github.com/hirmeos/identifier_translation_service/releases) [![License](https://img.shields.io/github/license/hirmeos/identifier_translation_service.svg?colorB=ff0000)](https://github.com/hirmeos/identifier_translation_service/blob/master/LICENSE)
 
 
 ## Auth tokens
