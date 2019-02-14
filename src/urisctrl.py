@@ -24,7 +24,7 @@ class UrisController(object):
         """Add identifiers to an existing work"""
         logger.debug("Data: %s" % (web.data()))
 
-        data      = json.loads(web.data())
+        data      = json.loads(web.data().decode('utf-8'))
         uri       = data.get('URI') or data.get('uri')
         canonical = data.get('canonical') in (True, "true", "True")
         work_id   = data.get('UUID') or data.get('uuid')

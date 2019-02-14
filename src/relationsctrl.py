@@ -24,7 +24,7 @@ class RelationsController(object):
         """Create a work relation"""
         logger.debug("Data: %s" % (web.data()))
 
-        data        = json.loads(web.data())
+        data        = json.loads(web.data().decode('utf-8'))
         parent_uuid = data.get('parent_UUID') or data.get('parent_uuid')
         child_uuid  = data.get('child_UUID') or data.get('child_uuid')
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Identifier Translator JSON API. Simple web.py based API to a
@@ -10,12 +10,10 @@ usage: python api.py
 Use of this software is governed by the terms of the MIT license
 
 Dependencies:
-  pbkdf2==1.3
-  PyJWT==1.6.1
+  PyJWT==1.7.1
   psycopg2-binary==2.7.5
   uri==2.0.0
-  urllib3==1.20
-  web.py==0.39
+  web.py==0.40-dev1
 """
 
 import os
@@ -24,13 +22,24 @@ import jwt
 import json
 from aux import logger_instance, debug_mode
 from errors import Error, internal_error, not_found, \
-    FATAL, NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
+    NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
-# Get secret key to check jwt against
-SECRET_KEY = os.environ['SECRET_KEY']
+# You may disable JWT auth. when implementing the API in a local network
+JWT_DISABLED = False
+# Get secret key to check JWT
+SECRET_KEY = ""
+try:
+    if 'JWT_DISABLED' in os.environ:
+        JWT_DISABLED = os.environ['JWT_DISABLED'] in ('true', 'True')
+    if 'SECRET_KEY' in os.environ:
+        SECRET_KEY = os.environ['SECRET_KEY']
+    assert JWT_DISABLED or SECRET_KEY
+except AssertionError as error:
+    logger.error(error)
+    raise
 
 # Define routes
 urls = (
@@ -50,7 +59,7 @@ try:
                       db=os.environ['IDENTIFIERSDB_DB'])
 except Exception as error:
     logger.error(error)
-    raise Error(FATAL)
+    raise
 
 
 def api_response(fn):
@@ -82,15 +91,16 @@ def json_response(fn):
 def check_token(fn):
     """Decorator to act as middleware, checking authentication token"""
     def response(self, *args, **kw):
-        intoken = get_token_from_header()
-        try:
-            jwt.decode(intoken, SECRET_KEY)
-        except jwt.exceptions.DecodeError:
-            raise Error(FORBIDDEN)
-        except jwt.ExpiredSignatureError:
-            raise Error(UNAUTHORIZED, msg="Signature expired.")
-        except jwt.InvalidTokenError:
-            raise Error(UNAUTHORIZED, msg="Invalid token.")
+        if not JWT_DISABLED:
+            intoken = get_token_from_header()
+            try:
+                jwt.decode(intoken, SECRET_KEY)
+            except jwt.exceptions.DecodeError:
+                raise Error(FORBIDDEN)
+            except jwt.ExpiredSignatureError:
+                raise Error(UNAUTHORIZED, msg="Signature expired.")
+            except jwt.InvalidTokenError:
+                raise Error(UNAUTHORIZED, msg="Invalid token.")
         return fn(self, *args, **kw)
     return response
 
@@ -124,7 +134,7 @@ def build_parms(filters):
             raise Error(BADFILTERS, msg="Unknown filter '%s'" % (p))
 
     process = {"work_type": types, "uri_scheme": schemes, "canonical": canoncl}
-    for key, values in process.items():
+    for key, values in list(process.items()):
         if len(values) > 0:
             try:
                 andclause, ops = build_clause(key, values)
