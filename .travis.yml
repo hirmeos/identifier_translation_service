@@ -4,4 +4,4 @@ python:
 install:
   - pip install -r ./config/requirements.txt
 script:
-  - flake8 --ignore=E221,E241 ./src/
+  - flake8 --ignore=E221,E241 ./src/*
