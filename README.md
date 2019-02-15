@@ -1,6 +1,7 @@
 # Identifier Translation Service
 [![Build Status](https://travis-ci.org/hirmeos/identifier_translation_service.svg?branch=master)](https://travis-ci.org/hirmeos/identifier_translation_service) [![Release](https://img.shields.io/github/release/hirmeos/identifier_translation_service.svg?colorB=58839b)](https://github.com/hirmeos/identifier_translation_service/releases) [![License](https://img.shields.io/github/license/hirmeos/identifier_translation_service.svg?colorB=ff0000)](https://github.com/hirmeos/identifier_translation_service/blob/master/LICENSE)
-The Identifier Translation Service is a REST API to a [database of publication URIs][1]. The translation service maps works (publications) to URIs (e.g. info:doi:10.11647/obp.0001, urn:isbn:9781906924010, https://www.openbookpublishers.com/product/3) to allow converting from one identifier to another.
+
+The Identifier Translation Service is a JSON REST API to a [database of publication URIs][1]. The translation service maps works (publications) to URIs (e.g. info:doi:10.11647/obp.0001, urn:isbn:9781906924010, https://www.openbookpublishers.com/product/3) to allow converting from one identifier to another.
 
 
 ## Setup
@@ -64,7 +65,7 @@ Notes:
 ## API Structure
 
 ### Publication identifiers as URIs
-The translation service stores all work (publication) identifiers as URIs, therefore when querying/populating the database you must use the relevant [URI scheme][8]. When multiple identifiers of the same scheme are associated with the same work, you may set one and only one canonical URI per URI scheme, which will be the returned value when the `strict` flag is used.
+The translation service stores all work (publication) identifiers as URIs, therefore when querying/populating the database you must use the relevant [URI scheme][7]. When multiple identifiers of the same scheme are associated with the same work, you may set one and only one canonical URI per URI scheme, which will be the returned value when the `strict` flag is used.
 
 | Identifier | URI Scheme | Example                                       |
 | ---------- | ---------- | --------------------------------------------- |
@@ -73,8 +74,8 @@ The translation service stores all work (publication) identifiers as URIs, there
 | ISSN       | urn:issn   | urn:issn:20542445                             |
 | UUID       | urn:uuid   | urn:uuid:463b4279-4e8d-47f8-a133-ad8ce7c4f86c |
 | Handle     | info:hdl   | info:hdl:10670/1.di2dtn                       |
-| URL        | http       | www.openbookpublishers.com/product/3          |
-| URL        | https      | www.openbookpublishers.com/product/3          |
+| URL        | http       | http://www.openbookpublishers.com/product/3   |
+| URL        | https      | https://www.openbookpublishers.com/product/3  |
 
 ### API routes
 The following methods are allowed:
@@ -232,7 +233,7 @@ In this example we use a fictional parent UUID, which could be one of a book ser
 ```
 
 ### More
-Check some more [example queries][7].
+Check some more [example queries][6].
 
 ## Crosref extension
 The main purpose of this service was to store as many URIs per publication as possible, and it's unlikely that the user of this software will be aware of all of them. For this reason you may set up [hirmeos/crossref_uri_import][3] to periodically query Crossref's API with your DOIs and populate the translation service with potential new data (e.g. multiple DOIs assigned to the same publication, multiple resolution URLs).
@@ -244,6 +245,6 @@ You may write your own version of [OpenBookPublishers/obp_product_import][4] to 
 [2]: https://github.com/hirmeos/tokens_api "Tokens API"
 [3]: https://github.com/hirmeos/crossref_uri_import "Crossref URI import"
 [4]: https://github.com/OpenBookPublishers/obp_product_import "OBP Book import"
-[6]: https://github.com/OpenBookPublishers/obp_uri_import "OBP URI import"
-[7]: https://docs.google.com/document/d/1aEwV_6CF8ha5M5yRu6FsYWQBDbTMeazWDIj1h3kLSec/edit "Example queries"
-[8]: https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml "URI Schemes"
+[5]: https://github.com/OpenBookPublishers/obp_uri_import "OBP URI import"
+[6]: https://docs.google.com/document/d/1aEwV_6CF8ha5M5yRu6FsYWQBDbTMeazWDIj1h3kLSec/edit "Example queries"
+[7]: https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml "URI Schemes"
