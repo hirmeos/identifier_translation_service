@@ -1,8 +1,5 @@
 FROM python:3.5
 
-RUN apt-get update && apt-get upgrade -y && \
-    pip install --upgrade pip
-
 WORKDIR /usr/src/app
 
 COPY ./config/requirements.txt ./
