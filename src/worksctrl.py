@@ -42,7 +42,7 @@ class WorksController(object):
             raise Error(NORESULT)
 
         include_relatives = work_id is not None
-        data = results_to_works(list(results), include_relatives)
+        data = results_to_works(results, include_relatives)
 
         if sort:
             reverse = order == "desc"
@@ -59,10 +59,7 @@ class WorksController(object):
         """Create a work"""
         logger.debug("Data: %s" % (web.data()))
 
-        try:
-            data = json.loads(web.data().decode('utf-8'))
-        except json.decoder.JSONDecodeError:
-            raise Error(BADPARAMS, msg="Could not decode JSON.")
+        data   = json.loads(web.data())
         wtype  = data.get('type')
         title  = data.get('title')
         uri    = data.get('URI') or data.get('uri')

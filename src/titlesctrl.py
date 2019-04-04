@@ -26,11 +26,8 @@ class TitlesController(object):
         """Add titles to an existing work"""
         logger.debug("Data: %s" % (web.data()))
 
-        try:
-            data = json.loads(web.data().decode('utf-8'))
-        except json.decoder.JSONDecodeError:
-            raise Error(BADPARAMS, msg="Could not decode JSON.")
-        title = data.get('title')
+        data    = json.loads(web.data())
+        title   = data.get('title')
         work_id = data.get('UUID') or data.get('uuid')
 
         try:
