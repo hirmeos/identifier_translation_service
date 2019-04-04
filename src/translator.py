@@ -1,7 +1,5 @@
 import web
-import urllib.request
-import urllib.parse
-import urllib.error
+import urllib
 from aux import logger_instance, debug_mode
 from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
@@ -43,7 +41,7 @@ class Translator(object):
                 scheme, value = Identifier.split_uri(uri)
                 assert scheme and value
             if title:
-                title = urllib.parse.unquote(title.strip())
+                title = urllib.unquote(title.strip())
                 assert title
             assert uri or title
         except BaseException:
@@ -62,7 +60,7 @@ class Translator(object):
         if not results:
             raise Error(NORESULT)
 
-        return self.process_results(list(results), strict)
+        return self.process_results(results, strict)
 
     def POST(self, name):
         raise Error(NOTALLOWED)

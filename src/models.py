@@ -416,10 +416,12 @@ def results_to_works(results, include_relatives=False):
     uris     = []  # temp array of work URIs (strings, used for comparison)
     uris_fmt = []  # temporary array of work URIs (Identifier objects)
     last     = len(results) - 1
-    cur      = results[0]
 
     i = 0
     for e in results:
+        if i == 0:
+            # we can't do cur=results[0] outsise--it moves IterBetter's pointer
+            cur = e
         if e["work_id"] != cur["work_id"]:
             cur["titles"] = titles
             cur["URI"] = uris_fmt
