@@ -277,7 +277,7 @@ class Identifier(object):
             scheme = uri.scheme.name
             # we're replacing the scheme instead of using heirarchical
             # to preserve query strings
-            value  = uri_str.replace(uri.scheme.name + '://', '')
+            value  = uri_str.replace(uri.scheme.name + '://', '', 1)
         else:
             # e.g. uri.heirarchical = 'doi:10.11647/obp.0130';
             # we are asumming the path only contains one colon
