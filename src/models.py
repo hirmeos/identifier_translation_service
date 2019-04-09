@@ -283,7 +283,7 @@ class Identifier(object):
             # we are asumming the path only contains one colon
             namespace, value = uri.heirarchical.split(':', 1)
             scheme = ''.join([uri.scheme.name, ':', namespace])
-            if namespace is "isbn":
+            if namespace == "isbn":
                 # we store hyphenless isbn numbers - remove hyphens from input
                 value = value.replace("-", "")
         # we store lowercased URIs - let's lower input
