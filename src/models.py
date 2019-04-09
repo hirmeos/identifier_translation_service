@@ -283,7 +283,7 @@ class Identifier(object):
             # we are asumming the path only contains one colon
             namespace, value = uri.heirarchical.split(':', 1)
             scheme = ''.join([uri.scheme.name, ':', namespace])
-            if namespace is "isbn":
+            if namespace == "isbn":
                 # we store hyphenless isbn numbers - remove hyphens from input
                 value = value.replace("-", "")
         # we store lowercased URIs - let's lower input
@@ -306,8 +306,8 @@ class Identifier(object):
                            uri_value, canonical, 0 AS score
                     FROM work_uri INNER JOIN work USING(work_id)
                     WHERE work_id IN (SELECT work_id FROM work_uri
-                                      WHERE uri_scheme = $inscheme
-                                      AND uri_value = $invalue)
+                                      WHERE uri_scheme = lower($inscheme)
+                                      AND uri_value = lower($invalue))
                     ''' + clause + '''
                     ORDER BY canonical DESC;'''
             result = db.query(q, options)
