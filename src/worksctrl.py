@@ -78,7 +78,8 @@ class WorksController(object):
         try:
             assert WorkType(wtype).exists()
         except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
+            t = wtype if type(wtype) == str else ""
+            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
 
         for i in uris:
             # attempt to get scheme from URI
