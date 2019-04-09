@@ -306,8 +306,8 @@ class Identifier(object):
                            uri_value, canonical, 0 AS score
                     FROM work_uri INNER JOIN work USING(work_id)
                     WHERE work_id IN (SELECT work_id FROM work_uri
-                                      WHERE uri_scheme = $inscheme
-                                      AND uri_value = $invalue)
+                                      WHERE uri_scheme = lower($inscheme)
+                                      AND uri_value = lower($invalue))
                     ''' + clause + '''
                     ORDER BY canonical DESC;'''
             result = db.query(q, options)
