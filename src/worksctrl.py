@@ -90,7 +90,8 @@ class WorksController(object):
                 except Exception:
                     i['canonical'] = False
             except Exception:
-                raise Error(BADPARAMS, msg="Invalid URI '%s'" % (ident))
+                identifier = ident if ident else ''
+                raise Error(BADPARAMS, msg="Invalid URI '%s'" % (identifier))
 
             # check whether the URI scheme exists in the database
             try:
