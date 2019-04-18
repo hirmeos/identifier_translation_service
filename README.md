@@ -65,7 +65,7 @@ Notes:
 ## API Structure
 
 ### Publication identifiers as URIs
-The translation service stores all work (publication) identifiers as URIs, therefore when querying/populating the database you must use the relevant [URI scheme][7]. When multiple identifiers of the same scheme are associated with the same work, you may set one and only one canonical URI per URI scheme, which will be the returned value when the `strict` flag is used.
+The translation service stores all work (publication) identifiers as URIs, therefore when querying/populating the database you must use the relevant [URI scheme][7].
 
 | Identifier | URI Scheme | Example                                       |
 | ---------- | ---------- | --------------------------------------------- |
@@ -76,6 +76,13 @@ The translation service stores all work (publication) identifiers as URIs, there
 | Handle     | info:hdl   | info:hdl:10670/1.di2dtn                       |
 | URL        | http       | http://www.openbookpublishers.com/product/3   |
 | URL        | https      | https://www.openbookpublishers.com/product/3  |
+
+#### The canonical flag
+When multiple identifiers of the same scheme are associated with the same work, **you may set one and only one canonical URI per URI scheme and work**, which will be the returned value when the `strict` flag is used.
+
+The `/translate` path attempts to retrieve a unique identifier of the chosen URI scheme (e.g. translating from a urn:isbn to a info:doi), if more than one identifier of the same URI scheme is found the API will complain that it is not able to translate properly. The canonical flag makes sure that in such a case the API is able to translate to the desired canonical URI of that particular scheme.
+
+A work can have at most one canonical URI of each URI scheme (e.g. one canonical URL, one canonical ISBN, one canonical DOI, etc.).
 
 ### API routes
 The following methods are allowed:
