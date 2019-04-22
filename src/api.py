@@ -14,7 +14,7 @@ Dependencies:
   PyJWT==1.6.1
   psycopg2-binary==2.7.5
   uri==2.0.0
-  urllib3==1.20
+  urllib3==1.24.2
   web.py==0.39
 """
 
