@@ -18,6 +18,7 @@ Dependencies:
   web.py==0.39
 """
 
+import re
 import os
 import web
 import jwt
@@ -115,7 +116,9 @@ def get_token_from_header():
 def build_parms(filters):
     if not filters:
         return "", {}
-    params  = filters.split(',')
+    # split by ',' except those preceeded by a top level domain, which will
+    # be a tag URI scheme (e.g. tag:openbookpublishers.com,2009)
+    params  = re.split(r"(?<!\.[a-z]{3}),", filters)
     options = {}
     types   = []
     schemes = []
