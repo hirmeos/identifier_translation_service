@@ -92,7 +92,7 @@ The following methods are allowed:
 | `GET`    | `/translate`      | Takes a `uri` as parameter and returns all identifiers associated with it. |
 | `GET`    | `/works`          | Return information about stored publications.                              |
 | `POST`   | `/works`          | Store a publication and associated URIs in the database.                   |
-| `DELETE` | `/works`          | Delete a publicatin and associated URIs from the database.                 |
+| `DELETE` | `/works`          | Delete a publication from the database.                                    |
 | `POST`   | `/titles`         | Add a new title to an existing publication.                                |
 | `DELETE` | `/titles`         | Remove a title from its publication.                                       |
 | `POST`   | `/uris`           | Add a new URI to an existing publication.                                  |
@@ -238,6 +238,13 @@ In this example we use a fictional parent UUID, which could be one of a book ser
   ]
 }
 ```
+
+#### `DELETE /works` data
+
+| Attribute | Type   | Description                        |
+| --------- | ------ | ---------------------------------- |
+| UUID      | string | The work_id of the work to delete. |
+
 
 ### More
 Check some more [example queries][6].

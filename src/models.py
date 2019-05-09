@@ -19,13 +19,13 @@ class Work(object):
         options = dict(uuid=self.UUID)
         result = db.select('work', options,
                            what="work_type", where="work_id = $uuid")
-        return result.first()["work_type"]
+        return result.first()["work_type"] if result else None
 
     def get_titles(self):
         options = dict(uuid=self.UUID)
         titles = db.select('work_title', options,
                            what="title", where="work_id = $uuid")
-        return [(x["title"]) for x in titles]
+        return [(x["title"]) for x in titles] if titles else []
 
     def get_identifiers(self):
         options = dict(uuid=self.UUID)
@@ -143,6 +143,10 @@ class Work(object):
                 db.delete('title', dict(title=title), where="title=$title")
             except BaseException:
                 pass
+
+    def delete(self):
+        q = '''DELETE FROM work WHERE work_id = $work_id'''
+        db.query(q, dict(work_id=self.UUID))
 
     @staticmethod
     def generate_uuid():
