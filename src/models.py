@@ -144,6 +144,10 @@ class Work(object):
             except BaseException:
                 pass
 
+    def delete(self):
+        q = '''DELETE FROM work WHERE work_id = $work_id'''
+        db.query(q, dict(work_id=self.UUID))
+
     @staticmethod
     def generate_uuid():
         return str(uuid.uuid4())

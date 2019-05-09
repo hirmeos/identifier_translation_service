@@ -142,7 +142,26 @@ class WorksController(object):
     @check_token
     def DELETE(self, name):
         """Delete a work"""
-        raise Error(NOTALLOWED)
+        logger.debug("Data: %s" % (web.input()))
+
+        work_id = web.input().get('UUID') or web.input().get('uuid')
+
+        try:
+            if not work_id:
+                raise AssertionError
+        except AssertionError as error:
+            logger.debug(error)
+            raise Error(BADPARAMS, msg="You must provide a (work) UUID")
+
+        try:
+            work = Work(work_id)
+            if not work.exists():
+                raise AssertionError
+        except AssertionError:
+            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+
+        work.delete()
+        return []
 
     @json_response
     def OPTIONS(self, name):
