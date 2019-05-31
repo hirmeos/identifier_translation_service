@@ -84,7 +84,7 @@ class WorksController(object):
         for i in uris:
             # attempt to get scheme from URI
             try:
-                ident = i['URI'] or i['uri']
+                ident = i.get('URI') or i.get('uri')
                 scheme, value = Identifier.split_uri(ident)
                 try:
                     i['canonical'] = i['canonical'] in (True, "true", "True")

@@ -83,7 +83,7 @@ class Work(object):
                     db.query(q, dict(work_id=self.UUID, title=title))
 
                 for i in self.URI:
-                    uri = i['URI'] or i['uri']
+                    uri = i.get('URI') or i.get('uri')
                     is_canonical = i['canonical']
                     scheme, value = Identifier.split_uri(uri)
                     Identifier.insert_if_not_exist(scheme, value)
@@ -120,7 +120,7 @@ class Work(object):
 
     def delete_uris(self):
         for i in self.URI:
-            uri = i['URI'] or i['uri']
+            uri = i.get('URI') or i.get('uri')
             scheme, value = Identifier.split_uri(uri)
             q = '''DELETE FROM work_uri WHERE work_id = $work_id
                     AND uri_scheme = $scheme AND uri_value = $value'''
