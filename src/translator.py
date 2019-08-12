@@ -1,5 +1,7 @@
 import web
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
+import urllib.error
+import urllib.request
 from aux import logger_instance, debug_mode
 from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
@@ -60,7 +62,7 @@ class Translator(object):
         if not results:
             raise Error(NORESULT)
 
-        return self.process_results(results, strict)
+        return self.process_results(list(results), strict)
 
     def POST(self, name):
         raise Error(NOTALLOWED)
