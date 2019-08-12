@@ -1,5 +1,5 @@
 import web
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from aux import logger_instance, debug_mode
 from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
@@ -41,7 +41,7 @@ class Translator(object):
                 scheme, value = Identifier.split_uri(uri)
                 assert scheme and value
             if title:
-                title = urllib.unquote(title.strip())
+                title = urllib.parse.unquote(title.strip())
                 assert title
             assert uri or title
         except BaseException:

@@ -78,7 +78,7 @@ class WorksController(object):
         try:
             assert WorkType(wtype).exists()
         except AssertionError:
-            t = wtype if type(wtype) == str else ""
+            t = wtype if isinstance(wtype, str) else ""
             raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
 
         for i in uris:

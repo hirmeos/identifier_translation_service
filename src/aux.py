@@ -17,7 +17,7 @@ def logger_instance(name):
 
 
 def strtolist(data):
-    if isinstance(data, basestring) or isinstance(data, dict):
+    if isinstance(data, str) or isinstance(data, dict):
         return [data]
-    elif type(data) is list:
+    elif isinstance(data, list):
         return data
