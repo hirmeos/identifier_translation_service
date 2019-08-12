@@ -101,30 +101,29 @@ class WorksController(object):
                 raise Error(BADPARAMS,
                             msg="Unknown URI scheme '%s'" % (scheme))
 
+        # instantiate a new work with the input data
         uuid = Work.generate_uuid()
         work = Work(uuid, wtype, titles, uris)
 
-        if parent:
-            parents = strtolist(parent)
-            for p in parents:
-                try:
-                    assert Work.is_uuid(p)
-                    assert Work.uuid_exists(p)
-                except AssertionError as error:
-                    logger.debug(error)
-                    raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
-            work.set_parents(parents)
+        # check relatives and associate them with the work
+        set_relatives(work, parent, child)
 
-        if child:
-            children = strtolist(child)
-            for c in children:
-                try:
-                    assert Work.is_uuid(c)
-                    assert Work.uuid_exists(c)
-                except AssertionError as error:
-                    logger.debug(error)
-                    raise Error(BADPARAMS, msg="Invalid child UUID provided.")
-            work.set_children(children)
+        relatives = {'parent': parent, 'child': child}
+        for name, group in relatives.items():
+            if group:
+                elements = strtolist(group)
+                for e in elements:
+                    try:
+                        assert Work.is_uuid(e)
+                        assert Work.uuid_exists(e)
+                    except AssertionError as error:
+                        logger.debug(error)
+                        m = "Invalid %s UUID provided." % (name)
+                        raise Error(BADPARAMS, m)
+                if name == 'parent':
+                    work.set_parents(elements)
+                else:
+                    work.set_children(elements)
 
         work.save()
 
@@ -166,3 +165,22 @@ class WorksController(object):
     @json_response
     def OPTIONS(self, name):
         return
+
+
+def set_relatives(work, parent=[], child=[]):
+    relatives = {'parent': parent, 'child': child}
+    for name, group in relatives.items():
+        if group:
+            elements = strtolist(group)
+            for e in elements:
+                try:
+                    assert Work.is_uuid(e)
+                    assert Work.uuid_exists(e)
+                except AssertionError as error:
+                    logger.debug(error)
+                    m = "Invalid %s UUID provided." % (name)
+                    raise Error(BADPARAMS, msg=m)
+            if name == 'parent':
+                work.set_parents(elements)
+            else:
+                work.set_children(elements)
