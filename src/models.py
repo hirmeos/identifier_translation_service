@@ -1,11 +1,13 @@
+import web
 import uuid
 import psycopg2
-from aux import logger_instance
+from aux import logger_instance, debug_mode
 from api import db
 from uri import URI
 from errors import Error, FATAL
 
 logger = logger_instance(__name__)
+web.config.debug = debug_mode()
 
 
 class Work(object):
@@ -421,10 +423,8 @@ def results_to_works(results, include_relatives=False):
     titles   = []  # temporary array of work titles
     uris     = []  # temp array of work URIs (strings, used for comparison)
     uris_fmt = []  # temporary array of work URIs (Identifier objects)
-    last     = len(results) - 1
 
-    i = 0
-    for e in results:
+    for i, e in enumerate(results):
         if i == 0:
             # we can't do cur=results[0] outsise--it moves IterBetter's pointer
             cur = e
@@ -449,14 +449,17 @@ def results_to_works(results, include_relatives=False):
             uris_fmt.append({"uri_scheme": e["uri_scheme"],
                              "uri_value": e["uri_value"],
                              "canonical": e["canonical"]})
-        if i == last:
-            cur["titles"] = titles
-            cur["URI"] = uris_fmt
-            work = result_to_work(cur)
-            work.URI = results_to_identifiers(cur["URI"])
-            if include_relatives:
-                work.load_children()
-                work.load_parents()
-            data.append(work.__dict__)
-        i += 1
+    try:
+        cur["titles"] = titles
+        cur["URI"] = uris_fmt
+        work = result_to_work(cur)
+        work.URI = results_to_identifiers(cur["URI"])
+        if include_relatives:
+            work.load_children()
+            work.load_parents()
+        data.append(work.__dict__)
+    except NameError:
+        # we need to run the above with the last element of IterBetter, if it
+        # fails it means that no results were iterated
+        pass
     return data
