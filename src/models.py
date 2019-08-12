@@ -180,18 +180,13 @@ class Work(object):
 
     @staticmethod
     def get_all(clause, params):
-        try:
-            q = '''SELECT DISTINCT(work.work_id), work_type, title, uri_scheme,
-                          uri_value, canonical
-                    FROM work LEFT JOIN work_uri USING(work_id)
-                        LEFT JOIN work_title USING(work_id)
-                    WHERE 1=1 ''' + clause + '''
-                    ORDER BY work_id;'''
-            result = db.query(q, params)
-            return result
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
-            raise Error(FATAL)
+        q = '''SELECT DISTINCT(work.work_id), work_type, title, uri_scheme,
+                      uri_value, canonical
+                FROM work LEFT JOIN work_uri USING(work_id)
+                    LEFT JOIN work_title USING(work_id)
+                WHERE 1=1 ''' + clause + '''
+                ORDER BY work_id;'''
+        return do_query(q, params)
 
 
 class Title(object):
@@ -267,13 +262,9 @@ class Identifier(object):
 
     @staticmethod
     def insert_if_not_exist(uri_scheme, uri_value):
-        try:
-            option = dict(sch=uri_scheme, val=uri_value)
-            q = '''INSERT INTO uri VALUES($sch, $val) ON CONFLICT DO NOTHING'''
-            return db.query(q, option)
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
-            raise Error(FATAL)
+        option = dict(sch=uri_scheme, val=uri_value)
+        q = '''INSERT INTO uri VALUES($sch, $val) ON CONFLICT DO NOTHING'''
+        return do_query(q, option)
 
     @staticmethod
     def split_uri(uri_str):
@@ -307,20 +298,15 @@ class Identifier(object):
     def get_from_uri(input_scheme, input_value, clause, params):
         options = {"inscheme": input_scheme, "invalue": input_value}
         options.update(params)
-        try:
-            q = '''SELECT work_id, work_type, uri_scheme,
-                           uri_value, canonical, 0 AS score
-                    FROM work_uri INNER JOIN work USING(work_id)
-                    WHERE work_id IN (SELECT work_id FROM work_uri
-                                      WHERE uri_scheme = lower($inscheme)
-                                      AND uri_value = lower($invalue))
-                    ''' + clause + '''
-                    ORDER BY canonical DESC;'''
-            result = db.query(q, options)
-            return result
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
-            raise Error(FATAL)
+        q = '''SELECT work_id, work_type, uri_scheme,
+                        uri_value, canonical, 0 AS score
+                FROM work_uri INNER JOIN work USING(work_id)
+                WHERE work_id IN (SELECT work_id FROM work_uri
+                                  WHERE uri_scheme = lower($inscheme)
+                                  AND uri_value = lower($invalue))
+                ''' + clause + '''
+                ORDER BY canonical DESC;'''
+        return do_query(q, options)
 
     @staticmethod
     def get_from_title(title, clause, params, scheme='', value=''):
@@ -332,51 +318,46 @@ class Identifier(object):
             uri_clause = ''
         options = {"title": title.lower(), "scheme": scheme, "value": value}
         options.update(params)
-        try:
-            q = '''SELECT * FROM (
-                SELECT DISTINCT ON (work_id, uri_scheme, uri_value) work_id,
-                       work_type, uri_scheme, uri_value, canonical, score
-                FROM (
-                    SELECT work_title.work_id, work_type,uri_scheme, uri_value,
-                           canonical, 0 AS score
+        q = '''SELECT * FROM (
+            SELECT DISTINCT ON (work_id, uri_scheme, uri_value) work_id,
+                    work_type, uri_scheme, uri_value, canonical, score
+            FROM (
+                SELECT work_title.work_id, work_type,uri_scheme, uri_value,
+                        canonical, 0 AS score
+                FROM work_title INNER JOIN work USING(work_id)
+                INNER JOIN work_uri USING(work_id)
+                WHERE lower(work_title.title)  = $title ''' + clause + '''
+                      ''' + uri_clause + '''
+                UNION
+                SELECT work_title.work_id, work_type,uri_scheme, uri_value,
+                        canonical, 1 AS score
+                FROM work_title INNER JOIN work USING(work_id)
+                INNER JOIN work_uri USING(work_id)
+                WHERE substr(lower(work_title.title), 1, length($title))
+                      = $title ''' + clause + uri_clause + '''
+                UNION
+                SELECT work_title.work_id, work_type,uri_scheme, uri_value,
+                        canonical, 1 AS score
+                FROM work_title INNER JOIN work USING(work_id)
+                INNER JOIN work_uri USING(work_id)
+                WHERE substr($title, 1, length(work_title.title))
+                      = lower(work_title.title) ''' + clause + '''
+                      ''' + uri_clause + '''
+                UNION
+                SELECT * FROM (
+                    SELECT work_title.work_id, work_type, uri_scheme,
+                          uri_value, canonical,
+                          levenshtein(lower(work_title.title), $title)
+                            as score
                     FROM work_title INNER JOIN work USING(work_id)
                     INNER JOIN work_uri USING(work_id)
-                    WHERE lower(work_title.title)  = $title ''' + clause + '''
-                          ''' + uri_clause + '''
-                    UNION
-                    SELECT work_title.work_id, work_type,uri_scheme, uri_value,
-                            canonical, 1 AS score
-                    FROM work_title INNER JOIN work USING(work_id)
-                    INNER JOIN work_uri USING(work_id)
-                    WHERE substr(lower(work_title.title), 1, length($title))
-                          = $title ''' + clause + uri_clause + '''
-                    UNION
-                    SELECT work_title.work_id, work_type,uri_scheme, uri_value,
-                           canonical, 1 AS score
-                    FROM work_title INNER JOIN work USING(work_id)
-                    INNER JOIN work_uri USING(work_id)
-                    WHERE substr($title, 1, length(work_title.title))
-                          = lower(work_title.title) ''' + clause + '''
-                          ''' + uri_clause + '''
-                    UNION
-                    SELECT * FROM (
-                        SELECT work_title.work_id, work_type, uri_scheme,
-                              uri_value, canonical,
-                              levenshtein(lower(work_title.title), $title)
-                                as score
-                        FROM work_title INNER JOIN work USING(work_id)
-                        INNER JOIN work_uri USING(work_id)
-                        WHERE pg_column_size(title) < 255 ''' + clause + '''
-                              ''' + uri_clause + ''') q
-                    WHERE score <= ((length($title)/3)+1)
-                ) query
-                ORDER BY work_id,uri_scheme, uri_value, score, canonical
-            ) result ORDER BY score ASC, canonical DESC;'''
-            result = db.query(q, options)
-            return result
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
-            raise Error(FATAL)
+                    WHERE pg_column_size(title) < 255 ''' + clause + '''
+                          ''' + uri_clause + ''') q
+                WHERE score <= ((length($title)/3)+1)
+            ) query
+            ORDER BY work_id,uri_scheme, uri_value, score, canonical
+        ) result ORDER BY score ASC, canonical DESC;'''
+        return do_query(q, options)
 
 
 def results_to_identifiers(results):
@@ -463,3 +444,11 @@ def results_to_works(results, include_relatives=False):
         # fails it means that no results were iterated
         pass
     return data
+
+
+def do_query(query, params):
+        try:
+            return db.query(query, params)
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise Error(FATAL)
