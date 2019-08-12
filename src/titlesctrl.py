@@ -24,9 +24,9 @@ class TitlesController(object):
     @check_token
     def POST(self, name):
         """Add titles to an existing work"""
-        logger.debug("Data: %s" % (web.data()))
+        logger.debug("Data: %s" % (web.data().decode('utf-8')))
 
-        data    = json.loads(web.data())
+        data    = json.loads(web.data().decode('utf-8'))
         title   = data.get('title')
         work_id = data.get('UUID') or data.get('uuid')
 
