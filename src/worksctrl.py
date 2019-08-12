@@ -57,9 +57,9 @@ class WorksController(object):
     @check_token
     def POST(self, name):
         """Create a work"""
-        logger.debug("Data: %s" % (web.data()))
+        logger.debug("Data: %s" % (web.data().decode('utf-8')))
 
-        data   = json.loads(web.data())
+        data   = json.loads(web.data().decode('utf-8'))
         wtype  = data.get('type')
         title  = data.get('title')
         uri    = data.get('URI') or data.get('uri')
@@ -78,7 +78,7 @@ class WorksController(object):
         try:
             assert WorkType(wtype).exists()
         except AssertionError:
-            t = wtype if type(wtype) == str else ""
+            t = wtype if isinstance(wtype, str) else ""
             raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
 
         for i in uris:

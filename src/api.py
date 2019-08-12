@@ -139,7 +139,7 @@ def build_parms(filters):
             raise Error(BADFILTERS, msg="Unknown filter '%s'" % (p))
 
     process = {"work_type": types, "uri_scheme": schemes, "canonical": canoncl}
-    for key, values in process.items():
+    for key, values in list(process.items()):
         if len(values) > 0:
             try:
                 andclause, ops = build_clause(key, values)
