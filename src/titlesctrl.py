@@ -60,12 +60,7 @@ class TitlesController(object):
 
         require_params_or_fail([title, work_id], "(work) UUID and title")
 
-        try:
-            work = Work(work_id, title=[title])
-            assert work.exists()
-        except Exception:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id, titles=[title])
         work.delete_titles()
         work.load_titles()
         work.load_identifiers()

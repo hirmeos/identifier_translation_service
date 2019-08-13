@@ -136,13 +136,7 @@ class WorksController(object):
 
         require_params_or_fail([work_id], 'a (work) UUID')
 
-        try:
-            work = Work(work_id)
-            if not work.exists():
-                raise AssertionError
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id)
         work.delete()
         return []
 
