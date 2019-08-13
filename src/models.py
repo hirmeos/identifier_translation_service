@@ -61,12 +61,13 @@ class Work(object):
     def load_parents(self):
         self.load_relatives('parent_work_id')
 
-    def load_relatives(self, k):
-        d = self.get_children() if k == 'child_work_id' else self.get_parents()
+    def load_relatives(self, key):
+        data = self.get_children() if key == 'child_work_id'
+            else self.get_parents()
         ids = [(x[key]) for x in data] if data else []
-        self.set_relatives(k, ids)
+        self.set_relatives(key, ids)
 
-    def set_relatives(self, k, ids):
+    def set_relatives(self, key, ids):
         if key == 'child_work_id':
             self.set_children(ids)
         else:
