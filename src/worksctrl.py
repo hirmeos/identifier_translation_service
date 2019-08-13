@@ -1,8 +1,8 @@
-import re
 import web
-from aux import logger_instance, debug_mode, strtolist, sort_results
+from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
+                 validate_sorting_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
-from errors import Error, NOTALLOWED, BADPARAMS, BADFILTERS, NORESULT
+from errors import Error, NOTALLOWED, BADPARAMS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme, results_to_works
 
 logger = logger_instance(__name__)
@@ -29,13 +29,8 @@ class WorksController(object):
             sort = web.input().get('sort')
             order = web.input().get('order', 'asc')
             clause, params = build_parms(filters)
-            try:
-                if sort:
-                    assert sort in ["title"]
-                    assert order in ["asc", "desc"]
-            except AssertionError:
-                raise Error(BADFILTERS,
-                            msg="Unknown sort '%s' '%s'" % (sort, order))
+            if sort:
+                validate_sorting_or_fail(["title"], sort, order)
             results = Work.get_all(clause, params)
 
         if not results:
@@ -46,7 +41,7 @@ class WorksController(object):
 
         if sort:
             # we sort by each work's (first) title
-            return sort_results(results, sort, order)
+            return sort_alphabetically(data, sort, order)
         return data
 
     @json_response
