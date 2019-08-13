@@ -52,7 +52,7 @@ class WorksController(object):
         logger.debug("Data: %s" % (web.data().decode('utf-8')))
 
         data   = json.loads(web.data().decode('utf-8'))
-        wtype  = data.get('type')
+        wtype  = data.get('type', '')
         title  = data.get('title')
         uri    = data.get('URI') or data.get('uri')
         parent = data.get('parent')
@@ -64,10 +64,7 @@ class WorksController(object):
         require_params_or_fail(titles, 'at least one title')
         require_params_or_fail(uris, 'at least one URI')
 
-        try:
-            assert WorkType(wtype).exists()
-        except AssertionError:
-            t = wtype if isinstance(wtype, str) else ""
+        if not WorkType(wtype).exists():
             raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
 
         for i in uris:
