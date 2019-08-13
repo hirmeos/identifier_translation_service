@@ -81,9 +81,7 @@ class WorksController(object):
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (identifier))
 
             # check whether the URI scheme exists in the database
-            try:
-                assert UriScheme(scheme).exists()
-            except AssertionError:
+            if not UriScheme(scheme).exists():
                 raise Error(BADPARAMS,
                             msg="Unknown URI scheme '%s'" % (scheme))
 

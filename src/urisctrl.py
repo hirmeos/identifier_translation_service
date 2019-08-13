@@ -37,9 +37,7 @@ class UrisController(object):
         except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
-        try:
-            assert UriScheme(scheme).exists()
-        except AssertionError:
+        if not UriScheme(scheme).exists():
             raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
 
         work = Work.find_or_fail(work_id, uris=uris)
