@@ -35,7 +35,7 @@ web.config.debug = debug_mode()
 JWT_DISABLED = os.getenv('JWT_DISABLED', 'false').lower() == 'true'
 # Get secret key to check JWT
 SECRET_KEY = os.getenv('SECRET_KEY')
-if not JWT_DISABLED or SECRET_KEY:
+if not JWT_DISABLED and not SECRET_KEY:
     logger.error("API authentication is not configured. "
                  "You must set JWT_DISABLED or SECRET_KEY")
     raise Error(FATAL)
