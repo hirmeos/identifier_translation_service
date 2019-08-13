@@ -84,7 +84,9 @@ class Work(object):
                 q = '''INSERT INTO work (work_id, work_type)
                        VALUES ($work_id, $work_type) ON CONFLICT DO NOTHING'''
                 db.query(q, dict(work_id=self.UUID, work_type=self.type))
-                assert self.exists()
+                if not self.exists():
+                    logger.error('Could not save record.')
+                    raise Error(FATAL)
 
                 for title in self.title:
                     t = Title(title)
