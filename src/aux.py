@@ -4,7 +4,7 @@
 import os
 import re
 import logging
-from errors import Error, BADFILTERS
+from errors import Error, BADFILTERS, BADPARAMS
 
 
 def debug_mode():
@@ -39,4 +39,4 @@ def validate_sorting_or_fail(valid_sorting, sort, order):
 
 def require_params_or_fail(parameters, msg):
     if not all(parameters):
-        raise Error(BADPARAMS, msg="You must provide %s" % (msg)
+        raise Error(BADPARAMS, msg="You must provide %s" % (msg))
