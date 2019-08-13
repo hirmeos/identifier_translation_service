@@ -2,7 +2,7 @@ import web
 import urllib.parse
 import urllib.error
 import urllib.request
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
     AMBIGUOUS, NONCANONICAL
