@@ -103,3 +103,18 @@ class NotFound(Error):
 class InternalError(Error):
     def __init__(self):
         Error.__init__(self, FATAL)
+
+
+class NoMethod(Error):
+    def __init__(self):
+        Error.__init__(self, NOTALLOWED)
+
+
+class Unauthorized(Error):
+    def __init__(self):
+        Error.__init__(self, UNAUTHORIZED)
+
+
+class Forbidden(Error):
+    def __init__(self):
+        Error.__init__(self, FORBIDDEN)

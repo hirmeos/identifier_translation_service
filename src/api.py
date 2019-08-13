@@ -24,8 +24,9 @@ import web
 import jwt
 import json
 from aux import logger_instance, debug_mode
-from errors import (Error, NotFound, InternalError, NORESULT, BADFILTERS,
-                    UNAUTHORIZED, FORBIDDEN, FATAL)
+from errors import (Error, NotFound, InternalError, NoMethod, Unauthorized,
+                    Forbidden, NORESULT, BADFILTERS, UNAUTHORIZED,
+                    FORBIDDEN, FATAL)
 
 # get logging interface
 logger = logger_instance(__name__)
@@ -165,4 +166,7 @@ if __name__ == "__main__":
     app = web.application(urls, globals())
     app.internalerror = InternalError
     app.notfound = NotFound
+    app.nomethod = NoMethod
+    app.unauthorized = Unauthorized
+    app.forbidden = Forbidden
     app.run()
