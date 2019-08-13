@@ -96,25 +96,15 @@ class Error(web.HTTPError):
 
 
 class NotFound(Error):
-    def __init__(self):
+    def __init__(self, *args, **kw):
         Error.__init__(self, NOTFOUND)
 
 
 class InternalError(Error):
-    def __init__(self):
+    def __init__(self, *args, **kw):
         Error.__init__(self, FATAL)
 
 
 class NoMethod(Error):
-    def __init__(self):
+    def __init__(self, *args, **kw):
         Error.__init__(self, NOTALLOWED)
-
-
-class Unauthorized(Error):
-    def __init__(self):
-        Error.__init__(self, UNAUTHORIZED)
-
-
-class Forbidden(Error):
-    def __init__(self):
-        Error.__init__(self, FORBIDDEN)

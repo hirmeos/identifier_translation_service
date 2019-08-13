@@ -1,7 +1,7 @@
 import web
 from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from errors import Error, NOTALLOWED, BADPARAMS
+from errors import Error, BADPARAMS
 from models import Work, Identifier, UriScheme
 
 logger = logger_instance(__name__)
@@ -10,12 +10,6 @@ web.config.debug = debug_mode()
 
 class UrisController(object):
     """Handles URI related actions"""
-
-    @json_response
-    @api_response
-    @check_token
-    def GET(self, name):
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response
@@ -45,13 +39,6 @@ class UrisController(object):
         work.load_identifiers()
 
         return [work.__dict__]
-
-    @json_response
-    @api_response
-    @check_token
-    def PUT(self, name):
-        """Update an identifier"""
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response

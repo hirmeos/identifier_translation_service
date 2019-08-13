@@ -2,7 +2,7 @@ import web
 from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
                  validate_sorting_or_fail, require_params_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
-from errors import Error, NOTALLOWED, BADPARAMS, NORESULT
+from errors import Error, BADPARAMS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme, results_to_works
 
 logger = logger_instance(__name__)
@@ -94,13 +94,6 @@ class WorksController(object):
         work.save()
 
         return [work.__dict__]
-
-    @json_response
-    @api_response
-    @check_token
-    def PUT(self, name):
-        """Update a work"""
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response

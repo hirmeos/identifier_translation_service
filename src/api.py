@@ -24,13 +24,15 @@ import web
 import jwt
 import json
 from aux import logger_instance, debug_mode
-from errors import (Error, NotFound, InternalError, NoMethod, Unauthorized,
-                    Forbidden, NORESULT, BADFILTERS, UNAUTHORIZED,
-                    FORBIDDEN, FATAL)
+from errors import (Error, NotFound, InternalError, NoMethod, NORESULT,
+                    BADFILTERS, UNAUTHORIZED, FORBIDDEN, FATAL)
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
+
+# override default 405 method
+web.webapi.nomethod = NoMethod
 
 # You may disable JWT auth. when implementing the API in a local network
 JWT_DISABLED = os.getenv('JWT_DISABLED', 'false').lower() == 'true'
@@ -167,6 +169,4 @@ if __name__ == "__main__":
     app.internalerror = InternalError
     app.notfound = NotFound
     app.nomethod = NoMethod
-    app.unauthorized = Unauthorized
-    app.forbidden = Forbidden
     app.run()

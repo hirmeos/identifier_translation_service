@@ -4,8 +4,7 @@ import urllib.error
 import urllib.request
 from aux import logger_instance, debug_mode, require_params_or_fail
 from api import build_parms, json_response, api_response, check_token
-from errors import (Error, BADPARAMS, NORESULT, NOTALLOWED,
-                    AMBIGUOUS, NONCANONICAL)
+from errors import Error, BADPARAMS, NORESULT, AMBIGUOUS, NONCANONICAL
 from models import Identifier, results_to_identifiers, result_to_identifier
 
 logger = logger_instance(__name__)
@@ -64,15 +63,6 @@ class Translator(object):
             raise Error(NORESULT)
 
         return self.process_results(list(results), strict)
-
-    def POST(self, name):
-        raise Error(NOTALLOWED)
-
-    def PUT(self, name):
-        raise Error(NOTALLOWED)
-
-    def DELETE(self, name):
-        raise Error(NOTALLOWED)
 
     def process_results(self, results, strict):
         """Convert results from query to objects.

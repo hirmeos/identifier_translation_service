@@ -1,7 +1,6 @@
 import web
 from aux import logger_instance, debug_mode, strtolist, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from errors import Error, NOTALLOWED
 from models import Work, Title, results_to_titles
 
 logger = logger_instance(__name__)
@@ -44,13 +43,6 @@ class TitlesController(object):
     @json_response
     @api_response
     @check_token
-    def PUT(self, name):
-        """Update a title"""
-        raise Error(NOTALLOWED)
-
-    @json_response
-    @api_response
-    @check_token
     def DELETE(self, name):
         """Delete a title"""
         logger.debug("Data: %s" % (web.input()))
@@ -66,3 +58,7 @@ class TitlesController(object):
         work.load_identifiers()
 
         return [work.__dict__]
+
+    @json_response
+    def OPTIONS(self, name):
+        return
