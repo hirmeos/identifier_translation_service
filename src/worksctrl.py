@@ -65,7 +65,7 @@ class WorksController(object):
         require_params_or_fail(uris, 'at least one URI')
 
         if not WorkType(wtype).exists():
-            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
+            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
 
         for i in uris:
             # attempt to get scheme from URI
