@@ -24,8 +24,8 @@ import web
 import jwt
 import json
 from aux import logger_instance, debug_mode
-from errors import Error, internal_error, not_found, \
-    NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
+from errors import (Error, internal_error, not_found, NORESULT, BADFILTERS,
+                    UNAUTHORIZED, FORBIDDEN, FATAL)
 
 # get logging interface
 logger = logger_instance(__name__)
