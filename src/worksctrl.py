@@ -1,6 +1,6 @@
 import web
 from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
-                 validate_sorting_or_fail)
+                 validate_sorting_or_fail, require_params_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, NOTALLOWED, BADPARAMS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme, results_to_works
@@ -58,14 +58,11 @@ class WorksController(object):
         parent = data.get('parent')
         child  = data.get('child')
 
-        try:
-            titles = strtolist(title)
-            uris   = strtolist(uri)
-            assert wtype and titles and uris
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) type"
-                        ", a title, and at least one URI")
+        titles = strtolist(title)
+        uris   = strtolist(uri)
+        require_params_or_fail([wtype], 'a (work) type')
+        require_params_or_fail(titles, 'at least one title')
+        require_params_or_fail(uris, 'at least one URI')
 
         try:
             assert WorkType(wtype).exists()
@@ -137,12 +134,7 @@ class WorksController(object):
 
         work_id = web.input().get('UUID') or web.input().get('uuid')
 
-        try:
-            if not work_id:
-                raise AssertionError
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID")
+        require_params_or_fail([work_id], 'a (work) UUID')
 
         try:
             work = Work(work_id)

@@ -1,5 +1,5 @@
 import web
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
 from errors import Error, NOTALLOWED, BADPARAMS
 from models import Work, Identifier, UriScheme
@@ -29,12 +29,7 @@ class UrisController(object):
         canonical = data.get('canonical') in (True, "true", "True")
         work_id   = data.get('UUID') or data.get('uuid')
 
-        try:
-            assert uri and work_id
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                        " and a URI")
+        require_params_or_fail([uri, work_id], "a (work) UUID and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)
@@ -70,12 +65,7 @@ class UrisController(object):
         work_id = web.input().get('UUID') or web.input().get('uuid')
         uri     = web.input().get('URI') or web.input().get('uri')
 
-        try:
-            assert uri and work_id
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                        " and a URI")
+        require_params_or_fail([uri, work_id], "a (work) UUID and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)

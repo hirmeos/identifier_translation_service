@@ -1,5 +1,5 @@
 import web
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NOTALLOWED
 from models import Work
@@ -28,12 +28,8 @@ class RelationsController(object):
         parent_uuid = data.get('parent_UUID') or data.get('parent_uuid')
         child_uuid  = data.get('child_UUID') or data.get('child_uuid')
 
-        try:
-            assert parent_uuid and child_uuid
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a parent and a child"
-                        "UUID")
+        require_params_or_fail([parent_uuid, child_uuid],
+                               'a parent and a child UUID')
 
         try:
             parent = Work(parent_uuid)
