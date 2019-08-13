@@ -1,6 +1,6 @@
 import re
 import web
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, sort_results
 from api import json_response, api_response, check_token
 from errors import Error, NOTALLOWED, NORESULT, BADFILTERS
 from models import WorkType, results_to_work_types
@@ -38,10 +38,7 @@ class TypesController(object):
         data = results_to_work_types(results)
 
         if sort:
-            reverse = order == "desc"
-            return sorted(data,
-                          key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
-                          reverse=reverse)
+            return sort_results(results, sort, order)
         return data
 
     @json_response

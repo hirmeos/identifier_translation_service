@@ -1,6 +1,6 @@
 import re
 import web
-from aux import logger_instance, debug_mode, strtolist
+from aux import logger_instance, debug_mode, strtolist, sort_results
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, NOTALLOWED, BADPARAMS, BADFILTERS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme, results_to_works
@@ -45,11 +45,8 @@ class WorksController(object):
         data = results_to_works(results, include_relatives)
 
         if sort:
-            reverse = order == "desc"
-            # we sort by each work's (first) title, ignoring special chars
-            return sorted(data,
-                          key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
-                          reverse=reverse)
+            # we sort by each work's (first) title
+            return sort_results(results, sort, order)
         return data
 
     @json_response

@@ -21,3 +21,10 @@ def strtolist(data):
         return [data]
     elif isinstance(data, list):
         return data
+
+
+def sort_results(results, sort, order='asc'):
+    reverse = order == "desc"
+    # we sort alphabetically, ignoring special characters
+    return sorted(data, key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
+                  reverse=reverse)
