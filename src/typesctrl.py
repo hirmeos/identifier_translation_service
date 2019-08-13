@@ -25,9 +25,7 @@ class TypesController(object):
             validate_sorting_or_fail(["work_type"], sort, order)
         results = WorkType.get_all()
 
-        try:
-            assert results
-        except AssertionError:
+        if not results:
             raise Error(NORESULT)
 
         data = results_to_work_types(results)
