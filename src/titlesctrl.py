@@ -38,12 +38,7 @@ class TitlesController(object):
             raise Error(BADPARAMS, msg="You must provide a (work) UUID"
                         " and at least a title")
 
-        try:
-            work = Work(work_id, titles=titles)
-            assert work.exists()
-        except Exception:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id, titles=titles)
         work.save()
         work.load_titles()
         work.load_identifiers()

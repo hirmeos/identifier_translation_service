@@ -4,7 +4,7 @@ import psycopg2
 from aux import logger_instance, debug_mode
 from api import db
 from uri import URI
-from errors import Error, FATAL
+from errors import Error, FATAL, BADPARAMS
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
@@ -187,6 +187,13 @@ class Work(object):
                 WHERE 1=1 ''' + clause + '''
                 ORDER BY work_id;'''
         return do_query(q, params)
+
+    @staticmethod
+    def find_or_fail(work_id, wtype=None, titles=[], uris=[]):
+        work = Work(work_id, work_type=wtype, titles=titles, uris=uris)
+        if not work.exists():
+            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+        return work
 
 
 class Title(object):

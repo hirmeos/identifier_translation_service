@@ -47,12 +47,7 @@ class UrisController(object):
         except AssertionError:
             raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
 
-        try:
-            work = Work(work_id, uris=uris)
-            assert work.exists()
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id, uris=uris)
         work.save()
         work.load_identifiers()
 
@@ -88,11 +83,7 @@ class UrisController(object):
         except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
-        try:
-            work = Work(work_id, uris=uris)
-            assert work.exists()
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+        work = Work.find_or_fail(work_id, uris)
 
         work.delete_uris()
         work.load_identifiers()
