@@ -56,12 +56,21 @@ class Work(object):
         self.__dict__.update({attribute: value})
 
     def load_children(self):
-        c = self.get_children()
-        self.set_children([(x["child_work_id"]) for x in c] if c else [])
+        self.load_relatives('child_work_id')
 
     def load_parents(self):
-        p = self.get_parents()
-        self.set_parents([(x["parent_work_id"]) for x in p] if p else [])
+        self.load_relatives('parent_work_id')
+
+    def load_relatives(self, k):
+        d = self.get_children() if k == 'child_work_id' else self.get_parents()
+        ids = [(x[key]) for x in data] if data else []
+        self.set_relatives(k, ids)
+
+    def set_relatives(self, k, ids):
+        if key == 'child_work_id':
+            self.set_children(ids)
+        else:
+            self.set_parents(ids)
 
     def set_children(self, children):
         self.set_attribute('child', children)
