@@ -4,8 +4,8 @@ import urllib.error
 import urllib.request
 from aux import logger_instance, debug_mode, require_params_or_fail
 from api import build_parms, json_response, api_response, check_token
-from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
-    AMBIGUOUS, NONCANONICAL
+from errors import (Error, BADPARAMS, NORESULT, NOTALLOWED,
+                    AMBIGUOUS, NONCANONICAL)
 from models import Identifier, results_to_identifiers, result_to_identifier
 
 logger = logger_instance(__name__)
