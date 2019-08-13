@@ -226,40 +226,39 @@ class Title(object):
         return db.select('title')
 
 
-class WorkType(object):
+class UnaryTable(object):
+    table_name = ""
+
+    def exists(self):
+        try:
+            where = "%s = $%s" % (self.table_name, self.table_name)
+            result = db.select(self.table_name, self.__dict__, where=where)
+            candidate = self.__dict__[self.table_name]
+            return result.first()[self.table_name] == candidate
+        except BaseException:
+            return False
+
+
+class WorkType(UnaryTable):
+    table_name = "work_type"
+
     def __init__(self, work_type):
         self.work_type = work_type
 
-    def exists(self):
-        try:
-            options = dict(wtype=self.work_type)
-            result = db.select('work_type', options,
-                               where="work_type = $wtype")
-            return result.first()["work_type"] == self.work_type
-        except BaseException:
-            return False
-
     @staticmethod
     def get_all():
-        return db.select('work_type')
+        return db.select(WorkType.table_name)
 
 
-class UriScheme(object):
+class UriScheme(UnaryTable):
+    table_name = "uri_scheme"
+
     def __init__(self, uri_scheme):
         self.uri_scheme = uri_scheme
 
-    def exists(self):
-        try:
-            options = dict(scheme=self.uri_scheme)
-            result = db.select('uri_scheme', options,
-                               where="uri_scheme = $scheme")
-            return result.first()["uri_scheme"] == self.uri_scheme
-        except BaseException:
-            return False
-
     @staticmethod
     def get_all():
-        return db.select('uri_scheme')
+        return db.select(UriScheme.table_name)
 
 
 class Identifier(object):
