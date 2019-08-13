@@ -1,7 +1,7 @@
 import web
 from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from errors import Error, BADPARAMS, NOTALLOWED
+from errors import Error, NOTALLOWED
 from models import Work
 
 logger = logger_instance(__name__)
