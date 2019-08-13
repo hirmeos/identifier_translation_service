@@ -24,7 +24,7 @@ import web
 import jwt
 import json
 from aux import logger_instance, debug_mode
-from errors import (Error, internal_error, not_found, NORESULT, BADFILTERS,
+from errors import (Error, NotFound, InternalError, NORESULT, BADFILTERS,
                     UNAUTHORIZED, FORBIDDEN, FATAL)
 
 # get logging interface
@@ -163,6 +163,6 @@ def build_clause(attribute, values):
 if __name__ == "__main__":
     logger.info("Starting API...")
     app = web.application(urls, globals())
-    app.internalerror = internal_error
-    app.notfound = not_found
+    app.internalerror = InternalError
+    app.notfound = NotFound
     app.run()
