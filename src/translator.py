@@ -2,10 +2,10 @@ import web
 import urllib.parse
 import urllib.error
 import urllib.request
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import build_parms, json_response, api_response, check_token
-from errors import Error, BADPARAMS, NORESULT, NOTALLOWED, \
-    AMBIGUOUS, NONCANONICAL
+from errors import (Error, BADPARAMS, NORESULT, NOTALLOWED,
+                    AMBIGUOUS, NONCANONICAL)
 from models import Identifier, results_to_identifiers, result_to_identifier
 
 logger = logger_instance(__name__)
@@ -41,11 +41,12 @@ class Translator(object):
         try:
             if uri:
                 scheme, value = Identifier.split_uri(uri)
-                assert scheme and value
+                require_params_or_fail([scheme, value], 'a valid URI')
             if title:
                 title = urllib.parse.unquote(title.strip())
-                assert title
-            assert uri or title
+                require_params_or_fail([title], 'a valid title')
+            if not uri and not title:
+                raise Error
         except BaseException:
             raise Error(BADPARAMS, msg="Invalid URI or title provided")
 

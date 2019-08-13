@@ -1,8 +1,8 @@
-import re
 import web
-from aux import logger_instance, debug_mode
+from aux import (logger_instance, debug_mode, sort_alphabetically,
+                 validate_sorting_or_fail)
 from api import json_response, api_response, check_token
-from errors import Error, NOTALLOWED, NORESULT, BADFILTERS
+from errors import Error, NOTALLOWED, NORESULT
 from models import WorkType, results_to_work_types
 
 logger = logger_instance(__name__)
@@ -21,27 +21,17 @@ class TypesController(object):
 
         sort = web.input().get('sort')
         order = web.input().get('order', 'asc')
-        try:
-            if sort:
-                assert sort in ["work_type"]
-                assert order in ["asc", "desc"]
-        except Exception:
-            raise Error(BADFILTERS,
-                        msg="Unknown sort '%s' '%s'" % (sort, order))
+        if sort:
+            validate_sorting_or_fail(["work_type"], sort, order)
         results = WorkType.get_all()
 
-        try:
-            assert results
-        except AssertionError:
+        if not results:
             raise Error(NORESULT)
 
         data = results_to_work_types(results)
 
         if sort:
-            reverse = order == "desc"
-            return sorted(data,
-                          key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
-                          reverse=reverse)
+            return sort_alphabetically(data, sort, order)
         return data
 
     @json_response

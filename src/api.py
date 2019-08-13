@@ -24,25 +24,21 @@ import web
 import jwt
 import json
 from aux import logger_instance, debug_mode
-from errors import Error, internal_error, not_found, \
-    NORESULT, BADFILTERS, UNAUTHORIZED, FORBIDDEN
+from errors import (Error, internal_error, not_found, NORESULT, BADFILTERS,
+                    UNAUTHORIZED, FORBIDDEN, FATAL)
 
 # get logging interface
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
+
 # You may disable JWT auth. when implementing the API in a local network
-JWT_DISABLED = False
+JWT_DISABLED = os.getenv('JWT_DISABLED', 'false').lower() == 'true'
 # Get secret key to check JWT
-SECRET_KEY = ""
-try:
-    if 'JWT_DISABLED' in os.environ:
-        JWT_DISABLED = os.environ['JWT_DISABLED'] in ('true', 'True')
-    if 'SECRET_KEY' in os.environ:
-        SECRET_KEY = os.environ['SECRET_KEY']
-    assert JWT_DISABLED or SECRET_KEY
-except AssertionError as error:
-    logger.error(error)
-    raise
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not JWT_DISABLED and not SECRET_KEY:
+    logger.error("API authentication is not configured. "
+                 "You must set JWT_DISABLED or SECRET_KEY")
+    raise Error(FATAL)
 
 # Define routes
 urls = (

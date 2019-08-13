@@ -1,7 +1,7 @@
 import web
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from errors import Error, BADPARAMS, NOTALLOWED
+from errors import Error, NOTALLOWED
 from models import Work
 
 logger = logger_instance(__name__)
@@ -28,28 +28,13 @@ class RelationsController(object):
         parent_uuid = data.get('parent_UUID') or data.get('parent_uuid')
         child_uuid  = data.get('child_UUID') or data.get('child_uuid')
 
-        try:
-            assert parent_uuid and child_uuid
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a parent and a child"
-                        "UUID")
+        require_params_or_fail([parent_uuid, child_uuid],
+                               'a parent and a child UUID')
 
-        try:
-            parent = Work(parent_uuid)
-            assert parent.exists()
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
+        parent = Work.find_or_fail(parent_uuid)
+        child = Work.find_or_fail(child_uuid)
 
-        try:
-            assert Work.is_uuid(child_uuid)
-            assert Work.uuid_exists(child_uuid)
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="Invalid child UUID provided.")
-
-        parent.set_children([child_uuid])
+        parent.set_children([child.UUID])
         parent.save()
 
         parent.load_titles()
