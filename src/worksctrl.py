@@ -91,24 +91,6 @@ class WorksController(object):
 
         # check relatives and associate them with the work
         set_relatives(work, parent, child)
-
-        relatives = {'parent': parent, 'child': child}
-        for name, group in relatives.items():
-            if group:
-                elements = strtolist(group)
-                for e in elements:
-                    try:
-                        assert Work.is_uuid(e)
-                        assert Work.uuid_exists(e)
-                    except AssertionError as error:
-                        logger.debug(error)
-                        m = "Invalid %s UUID provided." % (name)
-                        raise Error(BADPARAMS, m)
-                if name == 'parent':
-                    work.set_parents(elements)
-                else:
-                    work.set_children(elements)
-
         work.save()
 
         return [work.__dict__]
@@ -146,13 +128,7 @@ def set_relatives(work, parent=[], child=[]):
         if group:
             elements = strtolist(group)
             for e in elements:
-                try:
-                    assert Work.is_uuid(e)
-                    assert Work.uuid_exists(e)
-                except AssertionError as error:
-                    logger.debug(error)
-                    m = "Invalid %s UUID provided." % (name)
-                    raise Error(BADPARAMS, msg=m)
+                Work.find_or_fail(e)
             if name == 'parent':
                 work.set_parents(elements)
             else:
