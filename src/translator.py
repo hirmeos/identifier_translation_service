@@ -41,11 +41,11 @@ class Translator(object):
         try:
             if uri:
                 scheme, value = Identifier.split_uri(uri)
-                assert scheme and value
+                require_params_or_fail([scheme, value], 'a valid URI')
             if title:
                 title = urllib.parse.unquote(title.strip())
-                assert title
-            assert uri or title
+                require_params_or_fail([title], 'a valid title')
+            require_params_or_fail([uri, title], 'a valid title or URI')
         except BaseException:
             raise Error(BADPARAMS, msg="Invalid URI or title provided")
 
