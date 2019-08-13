@@ -45,7 +45,8 @@ class Translator(object):
             if title:
                 title = urllib.parse.unquote(title.strip())
                 require_params_or_fail([title], 'a valid title')
-            require_params_or_fail([uri, title], 'a valid title or URI')
+            if not uri and not title:
+                raise Error
         except BaseException:
             raise Error(BADPARAMS, msg="Invalid URI or title provided")
 
