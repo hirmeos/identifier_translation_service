@@ -31,21 +31,10 @@ class RelationsController(object):
         require_params_or_fail([parent_uuid, child_uuid],
                                'a parent and a child UUID')
 
-        try:
-            parent = Work(parent_uuid)
-            assert parent.exists()
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
+        parent = Work.find_or_fail(parent_uuid)
+        child = Work.find_or_fail(child_uuid)
 
-        try:
-            assert Work.is_uuid(child_uuid)
-            assert Work.uuid_exists(child_uuid)
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="Invalid child UUID provided.")
-
-        parent.set_children([child_uuid])
+        parent.set_children([child.UUID])
         parent.save()
 
         parent.load_titles()
