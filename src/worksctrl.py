@@ -1,8 +1,8 @@
-import re
 import web
-from aux import logger_instance, debug_mode, strtolist
+from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
+                 validate_sorting_or_fail, require_params_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
-from errors import Error, NOTALLOWED, BADPARAMS, BADFILTERS, NORESULT
+from errors import Error, BADPARAMS, NORESULT
 from models import Work, WorkType, Identifier, UriScheme, results_to_works
 
 logger = logger_instance(__name__)
@@ -29,13 +29,8 @@ class WorksController(object):
             sort = web.input().get('sort')
             order = web.input().get('order', 'asc')
             clause, params = build_parms(filters)
-            try:
-                if sort:
-                    assert sort in ["title"]
-                    assert order in ["asc", "desc"]
-            except AssertionError:
-                raise Error(BADFILTERS,
-                            msg="Unknown sort '%s' '%s'" % (sort, order))
+            if sort:
+                validate_sorting_or_fail(["title"], sort, order)
             results = Work.get_all(clause, params)
 
         if not results:
@@ -45,11 +40,8 @@ class WorksController(object):
         data = results_to_works(results, include_relatives)
 
         if sort:
-            reverse = order == "desc"
-            # we sort by each work's (first) title, ignoring special chars
-            return sorted(data,
-                          key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
-                          reverse=reverse)
+            # we sort by each work's (first) title
+            return sort_alphabetically(data, sort, order)
         return data
 
     @json_response
@@ -60,26 +52,20 @@ class WorksController(object):
         logger.debug("Data: %s" % (web.data().decode('utf-8')))
 
         data   = json.loads(web.data().decode('utf-8'))
-        wtype  = data.get('type')
+        wtype  = data.get('type', '')
         title  = data.get('title')
         uri    = data.get('URI') or data.get('uri')
         parent = data.get('parent')
         child  = data.get('child')
 
-        try:
-            titles = strtolist(title)
-            uris   = strtolist(uri)
-            assert wtype and titles and uris
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) type"
-                        ", a title, and at least one URI")
+        titles = strtolist(title)
+        uris   = strtolist(uri)
+        require_params_or_fail([wtype], 'a (work) type')
+        require_params_or_fail(titles, 'at least one title')
+        require_params_or_fail(uris, 'at least one URI')
 
-        try:
-            assert WorkType(wtype).exists()
-        except AssertionError:
-            t = wtype if isinstance(wtype, str) else ""
-            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (t))
+        if not WorkType(wtype).exists():
+            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
 
         for i in uris:
             # attempt to get scheme from URI
@@ -95,47 +81,19 @@ class WorksController(object):
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (identifier))
 
             # check whether the URI scheme exists in the database
-            try:
-                assert UriScheme(scheme).exists()
-            except AssertionError:
+            if not UriScheme(scheme).exists():
                 raise Error(BADPARAMS,
                             msg="Unknown URI scheme '%s'" % (scheme))
 
+        # instantiate a new work with the input data
         uuid = Work.generate_uuid()
         work = Work(uuid, wtype, titles, uris)
 
-        if parent:
-            parents = strtolist(parent)
-            for p in parents:
-                try:
-                    assert Work.is_uuid(p)
-                    assert Work.uuid_exists(p)
-                except AssertionError as error:
-                    logger.debug(error)
-                    raise Error(BADPARAMS, msg="Invalid parent UUID provided.")
-            work.set_parents(parents)
-
-        if child:
-            children = strtolist(child)
-            for c in children:
-                try:
-                    assert Work.is_uuid(c)
-                    assert Work.uuid_exists(c)
-                except AssertionError as error:
-                    logger.debug(error)
-                    raise Error(BADPARAMS, msg="Invalid child UUID provided.")
-            work.set_children(children)
-
+        # check relatives and associate them with the work
+        set_relatives(work, parent, child)
         work.save()
 
         return [work.__dict__]
-
-    @json_response
-    @api_response
-    @check_token
-    def PUT(self, name):
-        """Update a work"""
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response
@@ -146,23 +104,25 @@ class WorksController(object):
 
         work_id = web.input().get('UUID') or web.input().get('uuid')
 
-        try:
-            if not work_id:
-                raise AssertionError
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID")
+        require_params_or_fail([work_id], 'a (work) UUID')
 
-        try:
-            work = Work(work_id)
-            if not work.exists():
-                raise AssertionError
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id)
         work.delete()
         return []
 
     @json_response
     def OPTIONS(self, name):
         return
+
+
+def set_relatives(work, parent=[], child=[]):
+    relatives = {'parent': parent, 'child': child}
+    for name, group in relatives.items():
+        if group:
+            elements = strtolist(group)
+            for e in elements:
+                Work.find_or_fail(e)
+            if name == 'parent':
+                work.set_parents(elements)
+            else:
+                work.set_children(elements)

@@ -95,9 +95,16 @@ class Error(web.HTTPError):
         }
 
 
-def not_found():
-    raise Error(NOTFOUND)
+class NotFound(Error):
+    def __init__(self, *args, **kw):
+        Error.__init__(self, NOTFOUND)
 
 
-def internal_error():
-    raise Error(FATAL)
+class InternalError(Error):
+    def __init__(self, *args, **kw):
+        Error.__init__(self, FATAL)
+
+
+class NoMethod(Error):
+    def __init__(self, *args, **kw):
+        Error.__init__(self, NOTALLOWED)

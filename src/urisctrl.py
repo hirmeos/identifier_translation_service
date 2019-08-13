@@ -1,7 +1,7 @@
 import web
-from aux import logger_instance, debug_mode
+from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from errors import Error, NOTALLOWED, BADPARAMS
+from errors import Error, BADPARAMS
 from models import Work, Identifier, UriScheme
 
 logger = logger_instance(__name__)
@@ -10,12 +10,6 @@ web.config.debug = debug_mode()
 
 class UrisController(object):
     """Handles URI related actions"""
-
-    @json_response
-    @api_response
-    @check_token
-    def GET(self, name):
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response
@@ -29,12 +23,7 @@ class UrisController(object):
         canonical = data.get('canonical') in (True, "true", "True")
         work_id   = data.get('UUID') or data.get('uuid')
 
-        try:
-            assert uri and work_id
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                        " and a URI")
+        require_params_or_fail([uri, work_id], "a (work) UUID and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)
@@ -42,28 +31,14 @@ class UrisController(object):
         except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
-        try:
-            assert UriScheme(scheme).exists()
-        except AssertionError:
+        if not UriScheme(scheme).exists():
             raise Error(BADPARAMS, msg="Unknown URI scheme '%s'" % (scheme))
 
-        try:
-            work = Work(work_id, uris=uris)
-            assert work.exists()
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
-
+        work = Work.find_or_fail(work_id, uris=uris)
         work.save()
         work.load_identifiers()
 
         return [work.__dict__]
-
-    @json_response
-    @api_response
-    @check_token
-    def PUT(self, name):
-        """Update an identifier"""
-        raise Error(NOTALLOWED)
 
     @json_response
     @api_response
@@ -75,12 +50,7 @@ class UrisController(object):
         work_id = web.input().get('UUID') or web.input().get('uuid')
         uri     = web.input().get('URI') or web.input().get('uri')
 
-        try:
-            assert uri and work_id
-        except AssertionError as error:
-            logger.debug(error)
-            raise Error(BADPARAMS, msg="You must provide a (work) UUID"
-                        " and a URI")
+        require_params_or_fail([uri, work_id], "a (work) UUID and a URI")
 
         try:
             scheme, value = Identifier.split_uri(uri)
@@ -88,11 +58,7 @@ class UrisController(object):
         except Exception:
             raise Error(BADPARAMS, msg="Invalid URI '%s'" % (uri))
 
-        try:
-            work = Work(work_id, uris=uris)
-            assert work.exists()
-        except AssertionError:
-            raise Error(BADPARAMS, msg="Unknown work '%s'" % (work_id))
+        work = Work.find_or_fail(work_id, uris)
 
         work.delete_uris()
         work.load_identifiers()
