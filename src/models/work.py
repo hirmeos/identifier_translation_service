@@ -37,14 +37,16 @@ class Work(object):
         return results_to_identifiers(uris)
 
     def get_children(self):
-        options = dict(uuid=self.UUID)
-        return db.select('work_relation', options, what="child_work_id",
-                         where="parent_work_id=$uuid")
+        return self.get_relatives("child_work_id")
 
     def get_parents(self):
+        return self.get_relatives("parent_work_id")
+
+    def get_relatives(self, key):
+        where = {"parent_work_id": "child_work_id=$uuid",
+                 "child_work_id": "parent_work_id=$uuid"}
         options = dict(uuid=self.UUID)
-        return db.select('work_relation', options, what="parent_work_id",
-                         where="child_work_id=$uuid")
+        return db.select('work_relation', options, what=key, where=where[key])
 
     def load_identifiers(self):
         self.URI = self.get_identifiers()
