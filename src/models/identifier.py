@@ -8,8 +8,8 @@ web.config.debug = debug_mode()
 
 
 class Identifier():
-    def __init__(self, uri_scheme, uri_value, canonical, score, work={}):
-        self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
+    def __init__(self, uri, canonical, score, work={}):
+        self.URI_parts = uri
         self.canonical = canonical
         self.score     = score
         self.URI       = self.full_uri()

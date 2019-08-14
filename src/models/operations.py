@@ -14,10 +14,11 @@ def results_to_identifiers(results):
 
 def result_to_identifier(result):
     from .identifier import Identifier
+    uri = dict(scheme=result.get('uri_scheme'), value=result.get('uri_value'))
     work = dict(work_id=result.get('work_id'),
                 work_type=result.get('work_type'))
-    return Identifier(result.get('uri_scheme'), result.get('uri_value'),
-                      result.get('canonical'), result.get('score', 0), work)
+    return Identifier(uri, result.get('canonical'), result.get('score', 0),
+                      work)
 
 
 def result_to_work(result):
