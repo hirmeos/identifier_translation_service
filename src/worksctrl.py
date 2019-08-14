@@ -21,8 +21,6 @@ class WorksController():
     @check_token
     def GET(self, name):
         """List a work if UUID provided otherwise list all works"""
-        logger.debug("Query: %s" % (web.input()))
-
         work_id = web.input().get('uuid') or web.input().get('UUID')
 
         if work_id:
@@ -53,8 +51,6 @@ class WorksController():
     @check_token
     def POST(self, name):
         """Create a work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data   = json.loads(web.data().decode('utf-8'))
         wtype  = data.get('type', '')
         title  = data.get('title')

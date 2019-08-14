@@ -18,8 +18,6 @@ class TypesController():
     @check_token
     def GET(self, name):
         """List all work types"""
-        logger.debug("Query: %s" % (web.input()))
-
         sort = web.input().get('sort')
         order = web.input().get('order', 'asc')
         if sort:

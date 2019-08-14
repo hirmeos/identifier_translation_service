@@ -32,8 +32,6 @@ class Translator():
            - if multiple && strict: attempt to choose fittest result
            - if multiple && !strict: output all
         """
-        logger.debug("Query: %s" % (web.input()))
-
         uri     = web.input().get('uri') or web.input().get('URI')
         title   = web.input().get('title')
         filters = web.input().get('filter')

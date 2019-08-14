@@ -16,11 +16,9 @@ class RelationsController():
     @check_token
     def POST(self, name):
         """Create a work relation"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
-        data        = json.loads(web.data().decode('utf-8'))
+        data = json.loads(web.data().decode('utf-8'))
         parent_uuid = data.get('parent_UUID') or data.get('parent_uuid')
-        child_uuid  = data.get('child_UUID') or data.get('child_uuid')
+        child_uuid = data.get('child_UUID') or data.get('child_uuid')
 
         require_params_or_fail([parent_uuid, child_uuid],
                                'a parent and a child UUID')

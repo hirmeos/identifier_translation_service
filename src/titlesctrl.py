@@ -26,8 +26,6 @@ class TitlesController():
     @check_token
     def POST(self, name):
         """Add titles to an existing work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data    = json.loads(web.data().decode('utf-8'))
         title   = data.get('title')
         work_id = data.get('UUID') or data.get('uuid')
@@ -48,8 +46,6 @@ class TitlesController():
     @check_token
     def DELETE(self, name):
         """Delete a title"""
-        logger.debug("Data: %s" % (web.input()))
-
         work_id = web.input().get('UUID') or web.input().get('uuid')
         title   = web.input().get('title')
 

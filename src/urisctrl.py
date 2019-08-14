@@ -19,8 +19,6 @@ class UrisController():
     @check_token
     def POST(self, name):
         """Add identifiers to an existing work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data      = json.loads(web.data().decode('utf-8'))
         uri       = data.get('URI') or data.get('uri')
         canonical = data.get('canonical') in (True, "true", "True")
@@ -47,8 +45,6 @@ class UrisController():
     @check_token
     def DELETE(self, name):
         """Delete an identifier"""
-        logger.debug("Data: %s" % (web.input()))
-
         work_id = web.input().get('UUID') or web.input().get('uuid')
         uri     = web.input().get('URI') or web.input().get('uri')
 
