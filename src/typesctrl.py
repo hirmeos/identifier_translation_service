@@ -1,6 +1,6 @@
 import web
-from aux import (logger_instance, debug_mode, sort_alphabetically,
-                 validate_sorting_or_fail)
+from aux import (logger_instance, debug_mode, sort_alphabetically)
+from validation import validate_sorting_or_fail
 from api import json_response, api_response, check_token
 from errors import Error, NORESULT
 from models.worktype import WorkType

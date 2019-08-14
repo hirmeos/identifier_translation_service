@@ -1,5 +1,6 @@
 import web
-from aux import logger_instance, debug_mode, require_params_or_fail
+from aux import logger_instance, debug_mode
+from validation import require_params_or_fail
 from api import json, json_response, api_response, check_token
 from errors import Error, BADPARAMS
 from models.work import Work

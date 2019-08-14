@@ -32,7 +32,7 @@ def results_to_titles(results):
 
 def result_to_title(result):
     from .title import Title
-    return Title(result.get('title')
+    return Title(result.get('title'))
 
 
 def results_to_work_types(results):
