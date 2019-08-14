@@ -1,5 +1,4 @@
 import web
-import uuid
 import psycopg2
 from aux import logger_instance, debug_mode, strtolist
 from api import db
@@ -175,28 +174,6 @@ class Work():
     def delete(self):
         q = '''DELETE FROM work WHERE work_id = $work_id'''
         db.query(q, dict(work_id=self.UUID))
-
-    @staticmethod
-    def generate_uuid():
-        return str(uuid.uuid4())
-
-    @staticmethod
-    def is_uuid(input_uuid):
-        try:
-            uuid.UUID(input_uuid)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def uuid_exists(work_id):
-        try:
-            options = dict(work_id=work_id)
-            result = db.select('work', options, what="work_id",
-                               where="work_id = $work_id")
-            return result.first()["work_id"] == work_id
-        except BaseException:
-            return False
 
     @staticmethod
     def get_from_work_id(work_id):
