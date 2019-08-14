@@ -61,18 +61,15 @@ class Error(web.HTTPError):
     """Exception handler in the form of http errors"""
 
     def __init__(self, level=DEFAULT, msg='', data=[]):
-        httpstatus = self.get_status(level)
-        httpcode   = self.get_code(level)
-        headers    = {'Content-Type': 'application/json'}
-        message    = self.get_message(level)
-        if web.ctx.env.get('REQUEST_METHOD', '') == 'GET':
-            params = web.input()
-        else:
-            params = web.data().decode('utf-8')
-        output     = json.dumps(
-            self.make_output(httpcode, message, msg, params, data))
+        self.httpstatus = self.get_status(level)
+        self.httpcode = self.get_code(level)
+        self.headers = {'Content-Type': 'application/json'}
+        self.message = self.get_message(level)
+        self.description = msg
+        self.parameters = self.get_input()
 
-        web.HTTPError.__init__(self, httpstatus, headers, output)
+        output = self.make_output(data)
+        web.HTTPError.__init__(self, self.httpstatus, self.headers, output)
 
     def get_status(self, level):
         return _level_statuses.get(level)
@@ -83,16 +80,20 @@ class Error(web.HTTPError):
     def get_message(self, level):
         return _level_messages.get(level)
 
-    def make_output(self, httpcode, status_msg, description, parameters, data):
-        return {
+    def get_input(self):
+        method = web.ctx.env.get('REQUEST_METHOD', '')
+        return web.input() if method == 'GET' else web.data().decode('utf-8')
+
+    def make_output(self, data):
+        return json.dumps({
             'status': 'error',
-            'code': httpcode,
-            'message': status_msg,
-            'description': description,
-            'parameters': parameters,
+            'code': self.httpcode,
+            'message': self.message,
+            'description': self.description,
+            'parameters': self.parameters,
             'count': len(data),
             'data': data
-        }
+        })
 
 
 class NotFound(Error):
