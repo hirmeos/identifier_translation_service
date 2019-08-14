@@ -67,9 +67,7 @@ class WorksController(object):
         require_params_or_fail([wtype], 'a (work) type')
         require_params_or_fail(titles, 'at least one title')
         require_params_or_fail(uris, 'at least one URI')
-
-        if not WorkType(wtype).exists():
-            raise Error(BADPARAMS, msg="Unknown work type '%s'" % (wtype))
+        UriScheme.find_or_fail(scheme)
 
         for i in uris:
             # attempt to get scheme from URI
@@ -83,11 +81,8 @@ class WorksController(object):
             except Exception:
                 identifier = ident if ident else ''
                 raise Error(BADPARAMS, msg="Invalid URI '%s'" % (identifier))
-
             # check whether the URI scheme exists in the database
-            if not UriScheme(scheme).exists():
-                raise Error(BADPARAMS,
-                            msg="Unknown URI scheme '%s'" % (scheme))
+            UriScheme.find_or_fail(scheme)
 
         # instantiate a new work with the input data
         uuid = Work.generate_uuid()

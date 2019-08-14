@@ -16,3 +16,12 @@ class UriScheme(UnaryTable):
     @staticmethod
     def get_all():
         return db.select(UriScheme.table_name)
+
+
+    @staticmethod
+    def find_or_fail(uri_scheme):
+        scheme = UriScheme(uri_scheme)
+        if not scheme.exists():
+            msg = "Unknown URI scheme '%s'" % (uri_scheme)
+            raise Error(BADPARAMS, msg=msg)
+        return scheme
