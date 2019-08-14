@@ -13,7 +13,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class WorksController(object):
+class WorksController():
     """Handles work related actions"""
 
     @json_response

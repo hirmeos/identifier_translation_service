@@ -7,7 +7,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Identifier(object):
+class Identifier():
     def __init__(self, uri_scheme, uri_value, canonical, score, work={}):
         self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
         self.canonical = canonical

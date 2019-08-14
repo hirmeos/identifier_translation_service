@@ -10,7 +10,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class TypesController(object):
+class TypesController():
     """Handles work types related actions"""
 
     @json_response

@@ -12,7 +12,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Translator(object):
+class Translator():
     """Handles translation queries"""
 
     @json_response

@@ -10,7 +10,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class UrisController(object):
+class UrisController():
     """Handles URI related actions"""
 
     @json_response

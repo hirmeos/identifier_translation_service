@@ -9,7 +9,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class TitlesController(object):
+class TitlesController():
     """Handles title related actions"""
 
     @json_response

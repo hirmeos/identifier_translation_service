@@ -7,7 +7,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class RelationsController(object):
+class RelationsController():
     """Handles work_relation related actions"""
 
     @json_response
