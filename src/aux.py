@@ -3,6 +3,7 @@
 
 import os
 import re
+import web
 import logging
 
 
@@ -29,3 +30,11 @@ def sort_alphabetically(data, sort, order='asc'):
     # we sort alphabetically, ignoring special characters
     return sorted(data, key=lambda x: re.sub('[^A-Za-z]+', '', x[sort][0]),
                   reverse=reverse)
+
+
+def is_get_request():
+    return web.ctx.env.get('REQUEST_METHOD', '') == 'GET'
+
+
+def get_input():
+    return web.input() if is_get_request() else web.data().decode('utf-8')
