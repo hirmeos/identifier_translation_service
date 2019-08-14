@@ -4,6 +4,7 @@
 import os
 import re
 import web
+import uuid
 import logging
 
 
@@ -38,3 +39,7 @@ def is_get_request():
 
 def get_input():
     return web.input() if is_get_request() else web.data().decode('utf-8')
+
+
+def generate_uuid():
+    return str(uuid.uuid4())

@@ -1,5 +1,6 @@
 import web
-from aux import logger_instance, debug_mode, sort_alphabetically, strtolist
+from aux import (logger_instance, debug_mode, sort_alphabetically, strtolist,
+                 generate_uuid)
 from validation import validate_sorting_or_fail, require_params_or_fail
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, BADPARAMS, NORESULT
@@ -81,7 +82,7 @@ class WorksController():
             UriScheme.find_or_fail(scheme)
 
         # instantiate a new work with the input data
-        uuid = Work.generate_uuid()
+        uuid = generate_uuid()
         work = Work(uuid, wtype, titles, uris)
 
         # check relatives and associate them with the work
