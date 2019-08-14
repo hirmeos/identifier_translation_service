@@ -95,10 +95,8 @@ class Translator(object):
           (a) more than one work_id share the lowest score;
           (b) there is no canonical among multiple URIs of the fittest result.
         """
-        best = result_to_identifier(results[0])
-        # IterBetter does not support slices - so we convert results to list.
-        # Pointer is already be at results[1], ergo the list won't include best
-        for e in list(results):
+        best = result_to_identifier(results.pop(0))
+        for e in results:
             candidate  = result_to_identifier(e)
             same_score = candidate.score == best.score
             same_work  = candidate.work == best.work

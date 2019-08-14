@@ -14,10 +14,9 @@ def results_to_identifiers(results):
 
 def result_to_identifier(r):
     from .identifier import Identifier
+    work = dict(work_id=r.get('work_id'), work_type=r.get('work_type'))
     return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
-                      r["score"] if "score" in r else 0,
-                      r["work_id"] if "work_id" in r else None,
-                      r["work_type"] if "work_type" in r else None)
+                      r.get('score', 0), work)
 
 
 def result_to_work(r):
