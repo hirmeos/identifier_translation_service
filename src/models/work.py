@@ -76,13 +76,13 @@ class Work(object):
             self.set_parents(ids)
 
     def check_and_set_relatives(self, parent=[], child=[]):
-    relatives = {'parent_work_id': parent, 'child_work_id': child}
-    for name, group in relatives.items():
-        if group:
-            elements = strtolist(group)
-            for e in elements:
-                Work.find_or_fail(e)
-            self.set_relatives(name, elements)
+        relatives = {'parent_work_id': parent, 'child_work_id': child}
+        for name, group in relatives.items():
+            if group:
+                elements = strtolist(group)
+                for e in elements:
+                    Work.find_or_fail(e)
+                self.set_relatives(name, elements)
 
     def set_children(self, children):
         self.set_attribute('child', children)
