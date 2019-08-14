@@ -31,7 +31,7 @@ version: "3.5"
 
 services:
   identifiertranslatorservice_db:
-    image: openbookpublishers/identifiers_db:1
+    image: openbookpublishers/identifiers_db:2
     container_name: "identifiertranslatorservice_db"
     restart: unless-stopped
     volumes:
@@ -40,7 +40,7 @@ services:
       - ./config/db.env
 
   identifiertranslatorservice_api:
-    image: openbookpublishers/identifier_translation_service:1
+    image: openbookpublishers/identifier_translation_service:2
     container_name: "identifiertranslatorservice_api"
     restart: unless-stopped
     ports:
