@@ -67,7 +67,7 @@ class WorksController(object):
         require_params_or_fail([wtype], 'a (work) type')
         require_params_or_fail(titles, 'at least one title')
         require_params_or_fail(uris, 'at least one URI')
-        UriScheme.find_or_fail(scheme)
+        WorkType.find_or_fail(wtype)
 
         for i in uris:
             # attempt to get scheme from URI
