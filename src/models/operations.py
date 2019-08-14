@@ -15,15 +15,13 @@ def results_to_identifiers(results):
 def result_to_identifier(r):
     from .identifier import Identifier
     work = dict(work_id=r.get('work_id'), work_type=r.get('work_type'))
-    return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
-                      r.get('score', 0), work)
+    return Identifier(r.get('uri_scheme'), r.get('uri_value'),
+                      r.get('canonical'), r.get('score', 0), work)
 
 
 def result_to_work(r):
     from .work import Work
-    work = Work(r["work_id"], r["work_type"] if "work_type" in r else None,
-                r["titles"] if "titles" in r else [])
-    return work
+    return Work(r.get('work_id'), r.get('work_type'), r.get('titles', []))
 
 
 def results_to_titles(results):
@@ -32,7 +30,7 @@ def results_to_titles(results):
 
 def result_to_title(r):
     from .title import Title
-    return Title(r["title"])
+    return Title(r.get('title')
 
 
 def results_to_work_types(results):
@@ -41,7 +39,7 @@ def results_to_work_types(results):
 
 def result_to_work_type(r):
     from .worktype import WorkType
-    return WorkType(r["work_type"])
+    return WorkType(r.get('work_type'))
 
 
 def results_to_works(results, include_relatives=False):
