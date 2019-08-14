@@ -1,5 +1,5 @@
 import web
-from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
+from aux import (logger_instance, debug_mode, sort_alphabetically,
                  validate_sorting_or_fail, require_params_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, BADPARAMS, NORESULT
@@ -89,7 +89,7 @@ class WorksController(object):
         work = Work(uuid, wtype, titles, uris)
 
         # check relatives and associate them with the work
-        set_relatives(work, parent, child)
+        work.check_and_set_relatives(parent, child)
         work.save()
 
         return [work.__dict__]
@@ -112,16 +112,3 @@ class WorksController(object):
     @json_response
     def OPTIONS(self, name):
         return
-
-
-def set_relatives(work, parent=[], child=[]):
-    relatives = {'parent': parent, 'child': child}
-    for name, group in relatives.items():
-        if group:
-            elements = strtolist(group)
-            for e in elements:
-                Work.find_or_fail(e)
-            if name == 'parent':
-                work.set_parents(elements)
-            else:
-                work.set_children(elements)
