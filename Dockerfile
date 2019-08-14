@@ -6,7 +6,7 @@ COPY ./config/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm requirements.txt
 
-COPY ./src/* ./
+ADD ./src/ ./
 
 RUN flake8 --ignore=E221,E241 ./
 

@@ -1,7 +1,9 @@
 import web
 from aux import logger_instance, debug_mode, strtolist, require_params_or_fail
 from api import json, json_response, api_response, check_token
-from models import Work, Title, results_to_titles
+from models.work import Work
+from models.title import Title
+from models.operations import results_to_titles
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()

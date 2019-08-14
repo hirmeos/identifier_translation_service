@@ -2,7 +2,9 @@ import web
 from aux import logger_instance, debug_mode, require_params_or_fail
 from api import json, json_response, api_response, check_token
 from errors import Error, BADPARAMS
-from models import Work, Identifier, UriScheme
+from models.work import Work
+from models.identifier import Identifier
+from models.urischeme import UriScheme
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()

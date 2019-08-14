@@ -3,7 +3,8 @@ from aux import (logger_instance, debug_mode, sort_alphabetically,
                  validate_sorting_or_fail)
 from api import json_response, api_response, check_token
 from errors import Error, NORESULT
-from models import WorkType, results_to_work_types
+from models.worktype import WorkType
+from models.operations import results_to_work_types
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()

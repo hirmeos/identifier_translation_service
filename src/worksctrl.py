@@ -3,7 +3,11 @@ from aux import (logger_instance, debug_mode, strtolist, sort_alphabetically,
                  validate_sorting_or_fail, require_params_or_fail)
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, BADPARAMS, NORESULT
-from models import Work, WorkType, Identifier, UriScheme, results_to_works
+from models.work import Work
+from models.worktype import WorkType
+from models.identifier import Identifier
+from models.urischeme import UriScheme
+from models.operations import results_to_works
 
 logger = logger_instance(__name__)
 web.config.debug = debug_mode()
