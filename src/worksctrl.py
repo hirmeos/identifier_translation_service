@@ -1,6 +1,6 @@
 import web
 from aux import (logger_instance, debug_mode, sort_alphabetically,
-                 validate_sorting_or_fail, require_params_or_fail)
+                 validate_sorting_or_fail, require_params_or_fail, strtolist)
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, BADPARAMS, NORESULT
 from models.work import Work
