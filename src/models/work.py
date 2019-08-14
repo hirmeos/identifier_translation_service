@@ -10,7 +10,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Work(object):
+class Work():
     def __init__(self, work_id, work_type=None, titles=[], uris=[]):
         self.UUID   = work_id
         self.type   = work_type if work_type else self.get_type()

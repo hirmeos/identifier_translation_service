@@ -12,37 +12,36 @@ def results_to_identifiers(results):
     return [(result_to_identifier(e).__dict__) for e in results]
 
 
-def result_to_identifier(r):
+def result_to_identifier(result):
     from .identifier import Identifier
-    return Identifier(r["uri_scheme"], r["uri_value"], r["canonical"],
-                      r["score"] if "score" in r else 0,
-                      r["work_id"] if "work_id" in r else None,
-                      r["work_type"] if "work_type" in r else None)
+    work = dict(work_id=result.get('work_id'),
+                work_type=result.get('work_type'))
+    return Identifier(result.get('uri_scheme'), result.get('uri_value'),
+                      result.get('canonical'), result.get('score', 0), work)
 
 
-def result_to_work(r):
+def result_to_work(result):
     from .work import Work
-    work = Work(r["work_id"], r["work_type"] if "work_type" in r else None,
-                r["titles"] if "titles" in r else [])
-    return work
+    return Work(result.get('work_id'), result.get('work_type'),
+                result.get('titles', []))
 
 
 def results_to_titles(results):
     return [(result_to_title(e).__dict__) for e in results]
 
 
-def result_to_title(r):
+def result_to_title(result):
     from .title import Title
-    return Title(r["title"])
+    return Title(result.get('title'))
 
 
 def results_to_work_types(results):
     return [(result_to_work_type(e).__dict__) for e in results]
 
 
-def result_to_work_type(r):
+def result_to_work_type(result):
     from .worktype import WorkType
-    return WorkType(r["work_type"])
+    return WorkType(result.get('work_type'))
 
 
 def results_to_works(results, include_relatives=False):

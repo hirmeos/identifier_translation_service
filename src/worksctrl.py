@@ -1,6 +1,6 @@
 import web
-from aux import (logger_instance, debug_mode, sort_alphabetically,
-                 validate_sorting_or_fail, require_params_or_fail, strtolist)
+from aux import logger_instance, debug_mode, sort_alphabetically, strtolist
+from validation import validate_sorting_or_fail, require_params_or_fail
 from api import json, json_response, api_response, check_token, build_parms
 from errors import Error, BADPARAMS, NORESULT
 from models.work import Work
@@ -13,7 +13,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class WorksController(object):
+class WorksController():
     """Handles work related actions"""
 
     @json_response
@@ -21,8 +21,6 @@ class WorksController(object):
     @check_token
     def GET(self, name):
         """List a work if UUID provided otherwise list all works"""
-        logger.debug("Query: %s" % (web.input()))
-
         work_id = web.input().get('uuid') or web.input().get('UUID')
 
         if work_id:
@@ -53,8 +51,6 @@ class WorksController(object):
     @check_token
     def POST(self, name):
         """Create a work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data   = json.loads(web.data().decode('utf-8'))
         wtype  = data.get('type', '')
         title  = data.get('title')

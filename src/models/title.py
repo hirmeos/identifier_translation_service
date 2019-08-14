@@ -8,7 +8,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Title(object):
+class Title():
     def __init__(self, title):
         self.title = title
 

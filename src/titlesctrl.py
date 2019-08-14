@@ -1,5 +1,6 @@
 import web
-from aux import logger_instance, debug_mode, strtolist, require_params_or_fail
+from aux import logger_instance, debug_mode, strtolist
+from validation import require_params_or_fail
 from api import json, json_response, api_response, check_token
 from models.work import Work
 from models.title import Title
@@ -9,7 +10,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class TitlesController(object):
+class TitlesController():
     """Handles title related actions"""
 
     @json_response
@@ -25,8 +26,6 @@ class TitlesController(object):
     @check_token
     def POST(self, name):
         """Add titles to an existing work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data    = json.loads(web.data().decode('utf-8'))
         title   = data.get('title')
         work_id = data.get('UUID') or data.get('uuid')
@@ -47,8 +46,6 @@ class TitlesController(object):
     @check_token
     def DELETE(self, name):
         """Delete a title"""
-        logger.debug("Data: %s" % (web.input()))
-
         work_id = web.input().get('UUID') or web.input().get('uuid')
         title   = web.input().get('title')
 

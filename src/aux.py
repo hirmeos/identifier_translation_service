@@ -3,8 +3,8 @@
 
 import os
 import re
+import web
 import logging
-from errors import Error, BADFILTERS, BADPARAMS
 
 
 def debug_mode():
@@ -32,11 +32,9 @@ def sort_alphabetically(data, sort, order='asc'):
                   reverse=reverse)
 
 
-def validate_sorting_or_fail(valid_sorting, sort, order):
-    if sort not in valid_sorting or order not in ["asc", "desc"]:
-        raise Error(BADFILTERS, msg="Unknown sort '%s' '%s'" % (sort, order))
+def is_get_request():
+    return web.ctx.env.get('REQUEST_METHOD', '') == 'GET'
 
 
-def require_params_or_fail(parameters, msg):
-    if not all(parameters):
-        raise Error(BADPARAMS, msg="You must provide %s" % (msg))
+def get_input():
+    return web.input() if is_get_request() else web.data().decode('utf-8')

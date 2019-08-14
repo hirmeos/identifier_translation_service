@@ -1,5 +1,7 @@
 import web
 import json
+from aux import get_input
+
 
 NOTFOUND     = 10
 NOTALLOWED   = 20
@@ -66,7 +68,7 @@ class Error(web.HTTPError):
         self.headers = {'Content-Type': 'application/json'}
         self.message = self.get_message(level)
         self.description = msg
-        self.parameters = self.get_input()
+        self.parameters = get_input()
 
         output = self.make_output(data)
         web.HTTPError.__init__(self, self.httpstatus, self.headers, output)
@@ -79,10 +81,6 @@ class Error(web.HTTPError):
 
     def get_message(self, level):
         return _level_messages.get(level)
-
-    def get_input(self):
-        method = web.ctx.env.get('REQUEST_METHOD', '')
-        return web.input() if method == 'GET' else web.data().decode('utf-8')
 
     def make_output(self, data):
         return json.dumps({

@@ -7,16 +7,17 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Identifier(object):
-    def __init__(self, uri_scheme, uri_value, canonical, score,
-                 work_id=None, work_type=None):
+class Identifier():
+    def __init__(self, uri_scheme, uri_value, canonical, score, work={}):
         self.URI_parts = {'scheme': uri_scheme, 'value': uri_value}
         self.canonical = canonical
         self.score     = score
         self.URI       = self.full_uri()
+        work_id = work.get('work_id', None)
+        work_type = work.get('work_type', None)
         if work_id:
             from .work import Work
-            self.work  = Work(work_id, work_type).__dict__
+            self.work = Work(work_id, work_type).__dict__
 
     def is_canonical(self):
         return self.canonical

@@ -1,5 +1,6 @@
 import web
-from aux import logger_instance, debug_mode, require_params_or_fail
+from aux import logger_instance, debug_mode
+from validation import require_params_or_fail
 from api import json, json_response, api_response, check_token
 from errors import Error, BADPARAMS
 from models.work import Work
@@ -10,7 +11,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class UrisController(object):
+class UrisController():
     """Handles URI related actions"""
 
     @json_response
@@ -18,8 +19,6 @@ class UrisController(object):
     @check_token
     def POST(self, name):
         """Add identifiers to an existing work"""
-        logger.debug("Data: %s" % (web.data().decode('utf-8')))
-
         data      = json.loads(web.data().decode('utf-8'))
         uri       = data.get('URI') or data.get('uri')
         canonical = data.get('canonical') in (True, "true", "True")
@@ -46,8 +45,6 @@ class UrisController(object):
     @check_token
     def DELETE(self, name):
         """Delete an identifier"""
-        logger.debug("Data: %s" % (web.input()))
-
         work_id = web.input().get('UUID') or web.input().get('uuid')
         uri     = web.input().get('URI') or web.input().get('uri')
 

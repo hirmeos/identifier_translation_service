@@ -2,7 +2,8 @@ import web
 import urllib.parse
 import urllib.error
 import urllib.request
-from aux import logger_instance, debug_mode, require_params_or_fail
+from aux import logger_instance, debug_mode
+from validation import require_params_or_fail
 from api import build_parms, json_response, api_response, check_token
 from errors import Error, BADPARAMS, NORESULT, AMBIGUOUS, NONCANONICAL
 from models.identifier import Identifier
@@ -12,7 +13,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class Translator(object):
+class Translator():
     """Handles translation queries"""
 
     @json_response
@@ -31,8 +32,6 @@ class Translator(object):
            - if multiple && strict: attempt to choose fittest result
            - if multiple && !strict: output all
         """
-        logger.debug("Query: %s" % (web.input()))
-
         uri     = web.input().get('uri') or web.input().get('URI')
         title   = web.input().get('title')
         filters = web.input().get('filter')
@@ -95,10 +94,8 @@ class Translator(object):
           (a) more than one work_id share the lowest score;
           (b) there is no canonical among multiple URIs of the fittest result.
         """
-        best = result_to_identifier(results[0])
-        # IterBetter does not support slices - so we convert results to list.
-        # Pointer is already be at results[1], ergo the list won't include best
-        for e in list(results):
+        best = result_to_identifier(results.pop(0))
+        for e in results:
             candidate  = result_to_identifier(e)
             same_score = candidate.score == best.score
             same_work  = candidate.work == best.work

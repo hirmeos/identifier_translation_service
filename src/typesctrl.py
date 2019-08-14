@@ -1,6 +1,6 @@
 import web
-from aux import (logger_instance, debug_mode, sort_alphabetically,
-                 validate_sorting_or_fail)
+from aux import (logger_instance, debug_mode, sort_alphabetically)
+from validation import validate_sorting_or_fail
 from api import json_response, api_response, check_token
 from errors import Error, NORESULT
 from models.worktype import WorkType
@@ -10,7 +10,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class TypesController(object):
+class TypesController():
     """Handles work types related actions"""
 
     @json_response
@@ -18,8 +18,6 @@ class TypesController(object):
     @check_token
     def GET(self, name):
         """List all work types"""
-        logger.debug("Query: %s" % (web.input()))
-
         sort = web.input().get('sort')
         order = web.input().get('order', 'asc')
         if sort:

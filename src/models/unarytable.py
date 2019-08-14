@@ -6,7 +6,7 @@ logger = logger_instance(__name__)
 web.config.debug = debug_mode()
 
 
-class UnaryTable(object):
+class UnaryTable():
     table_name = ""
 
     def exists(self):
