@@ -4,3 +4,4 @@
 api.env
 db.env
 authdb.env
+.idea/

@@ -1,0 +1,49 @@
+`image: eu.gcr.io/ubiquity-ci/gitlab-base:39
+
+stages:
+  - k8s-scripts
+  - 📦 docker
+  - helm
+  - flake
+
+scripts:
+  stage: k8s-scripts
+  script:
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/ubiquitypress/kubernetes --depth 1 kubernetes
+  artifacts:
+    paths:
+      - kubernetes/
+  only:
+    - tags
+
+build-push-clean:
+  stage: 📦 docker
+  image:
+    name: gcr.io/kaniko-project/executor:debug-v0.17.1
+    entrypoint: [""]
+  script:
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination "eu.gcr.io/$GCLOUD_PROJECT_ID/$IMAGE_NAME:$CI_COMMIT_TAG"
+  only:
+    - tags
+
+helm:
+  stage: helm
+  script:
+    - helm init --client-only --skip-refresh
+    - helm plugin install https://github.com/viglesiasce/helm-gcs.git --version v0.2.0
+    - python3 kubernetes/ci/upgrade_chart.py kubernetes/$HELM_PROJECT_NAME/helm/$IMAGE_NAME/Chart.yaml
+    - helm package kubernetes/$HELM_PROJECT_NAME/helm/$IMAGE_NAME
+    - BOTO_CONFIG=/$GCLOUD_PROJECT_ID/boto_config helm repo add $HELM_REPO_NAME gs://$HELM_CHARTS_BUCKET
+    - BOTO_CONFIG=/$GCLOUD_PROJECT_ID/boto_config helm gcs push $(ls /builds/ubiquitypress/$CI_PROJECT_NAME/*.tgz) gs://$HELM_CHARTS_BUCKET
+  only:
+    - tags
+
+flake:
+  stage: flake
+  script:
+    - flake8 src
+  allow_failure: true
+`
