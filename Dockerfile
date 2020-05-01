@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 
 RUN apt-get update && apt-get install -y supervisor
 
-COPY ./src/* ./
+COPY ./src/ ./
 
 RUN flake8 --ignore=E221,E241 ./
 
