@@ -3,8 +3,7 @@ image: eu.gcr.io/ubiquity-ci/gitlab-base:39
 stages:
   - k8s-scripts
   - 📦 docker
-  - helm
-  - jira
+  - helm-jira
   - flake
 
 scripts:
@@ -31,7 +30,7 @@ build-push-clean:
     - tags
 
 helm:
-  stage: helm
+  stage: helm-jira
   script:
     - helm init --client-only --skip-refresh
     - helm plugin install https://github.com/viglesiasce/helm-gcs.git --version v0.2.0
@@ -40,13 +39,6 @@ helm:
     - helm package kubernetes/$HELM_PROJECT_NAME/helm/$IMAGE_NAME
     - BOTO_CONFIG=/$GCLOUD_PROJECT_ID/boto_config helm repo add $HELM_REPO_NAME gs://$HELM_CHARTS_BUCKET
     - BOTO_CONFIG=/$GCLOUD_PROJECT_ID/boto_config helm gcs push $(ls /builds/ubiquitypress/$CI_PROJECT_NAME/*.tgz) gs://$HELM_CHARTS_BUCKET
-  only:
-    - tags
-
-create-version:
-  stage: jira
-  script:
-    - python3 kubernetes/ci/create_jira_release.py
   only:
     - tags
 
